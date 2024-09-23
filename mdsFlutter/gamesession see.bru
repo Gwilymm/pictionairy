@@ -1,0 +1,22 @@
+meta {
+  name: gamesession see
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://pictioniary.wevox.cloud/api/game_sessions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{Bearer}}
+}
+
+body:json {
+   {
+     "name":"moi",
+    "password":"azerty"
+   }
+}

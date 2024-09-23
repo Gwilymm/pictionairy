@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pictionairy/utils/colors.dart';
 import 'package:pictionairy/utils/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChallengeFormScreen extends StatefulWidget {
   @override
@@ -27,13 +29,32 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
     return null;
   }
 
+  Future<List<Map<String, dynamic>>> _loadChallenges() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String>? challenges = prefs.getStringList('challenges');
+    if (challenges != null) {
+      return challenges.map((challenge) {
+        return jsonDecode(challenge) as Map<String, dynamic>;
+      }).toList();
+    }
+    return [];
+  }
+
+  Future<void> _saveChallenges(List<Map<String, dynamic>> challenges) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> encodedChallenges = challenges.map((challenge) {
+      return jsonEncode(challenge);
+    }).toList();
+    await prefs.setStringList('challenges', encodedChallenges);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Ajouter un challenge'),
-        backgroundColor: Colors.transparent, // Make AppBar transparent
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
       ),
@@ -98,7 +119,7 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      validator: (value) => _validateWord(value!), // Validation allows letters and spaces
+                      validator: (value) => _validateWord(value!),
                     ),
                     const SizedBox(height: 20),
 
@@ -213,16 +234,27 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
 
                     // Submit Button
                     ElevatedButton.icon(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
                           final challenge = {
-                            'firstToggle': isSelectedFirst[0] ? "UN" : "UNE", // Added the first toggle selection
+                            'firstToggle': isSelectedFirst[0] ? "UN" : "UNE",
                             'firstWord': _firstWordController.text,
                             'preposition': isSelectedPreposition[0] ? "SUR" : "DANS",
-                            'secondToggle': isSelectedSecond[0] ? "UN" : "UNE", // Added the second toggle selection
+                            'secondToggle': isSelectedSecond[0] ? "UN" : "UNE",
                             'secondWord': _secondWordController.text,
                             'forbiddenWords': forbiddenWords,
                           };
+
+                          // Load existing challenges
+                          List<Map<String, dynamic>> existingChallenges = await _loadChallenges();
+
+                          // Add the new challenge to the list
+                          existingChallenges.add(challenge);
+
+                          // Save the updated challenge list
+                          await _saveChallenges(existingChallenges);
+
+                          // Return to previous screen
                           Navigator.pop(context, challenge);
                         }
                       },
@@ -230,7 +262,6 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                       icon: const Icon(Icons.check, color: AppColors.buttonTextColor),
                       label: const Text('Ajouter', style: AppTheme.buttonTextStyle),
                     ),
-
                   ],
                 ),
               ),

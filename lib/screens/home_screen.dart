@@ -1,10 +1,13 @@
-// lib/screens/home_screen.dart
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:pictionairy/screens/join_game_screen.dart';
 import 'package:pictionairy/screens/start_game_screen.dart';
-import 'package:pictionairy/utils/theme.dart'; // Import the theme
-import 'package:pictionairy/utils/colors.dart'; // Import the colors
-import 'package:pictionairy/utils/shared_preferences_util.dart'; // Import SharedPreferencesUtil
+import 'package:pictionairy/utils/theme.dart';
+import 'package:pictionairy/utils/colors.dart';
+import 'package:pictionairy/utils/shared_preferences_util.dart';
+import 'package:pictionairy/utils/api_service.dart';
+import 'dart:math';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -32,43 +35,34 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true, // Allows background to extend behind the AppBar
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Piction.AI.ry'),
-        backgroundColor: Colors.transparent, // Make AppBar transparent to show the background
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
       ),
       body: Stack(
         children: [
-          // Grape soda background with gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryColor,
-                  AppColors.accentColor,
-                ],
+                colors: [AppColors.primaryColor, AppColors.accentColor],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
             ),
           ),
-
-          // Animated Bubble Background using BubbleBackground class
           Positioned.fill(
-            child: BubbleBackground.buildBubbles(), // Reusable bubble background
+            child: BubbleBackground.buildBubbles(),
           ),
-
-          // Main content
           Positioned.fill(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Header or description text
-                  const SizedBox(height: 100), // Adjusted for visual spacing
+                  const SizedBox(height: 100),
                   Text(
                     'Prêt à jouer ?',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
@@ -89,21 +83,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Button to Start a Game
                   FractionallySizedBox(
-                    widthFactor: 0.8, // Adjust width to 80% of the parent width
+                    widthFactor: 0.8,
                     child: ElevatedButton.icon(
                       onPressed: connectedUser == null
                           ? null
-                          : () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => StartGameScreen(connectedUser: connectedUser!),
-                          ),
-                        );
+                          : () async {
+                        // Step 1: Create game session
+                        final sessionId = await ApiService.createGameSession();
+
+                        if (sessionId != null) {
+                          // Step 2: Randomly assign team color (red or blue)
+                          final List<String> teamColors = ['red', 'blue'];
+                          final String randomTeam = teamColors[Random().nextInt(2)];
+
+                          // Step 3: Join the game session and get the response
+                          final joinResponse = await ApiService.joinGameSession(sessionId, randomTeam);
+
+                          if (joinResponse != null) {
+                            // Step 4: Decode the JSON response into a Map
+                            final gameSessionDetails = jsonDecode(joinResponse.body) as Map<String, dynamic>;
+
+                            // Step 5: Navigate to StartGameScreen with session details
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => StartGameScreen(
+                                  connectedUser: connectedUser!,
+                                  sessionId: sessionId,
+                                  gameSession: gameSessionDetails, // Pass session details
+                                ),
+                              ),
+                            );
+                          } else {
+                            print("Failed to join the game session");
+                          }
+                        } else {
+                          print("Failed to create game session");
+                        }
                       },
+
                       style: AppTheme.elevatedButtonStyle.copyWith(
-                        backgroundColor: WidgetStateProperty.all(AppColors.buttonColor),
-                      ), // Use button style from theme
+                        backgroundColor: MaterialStateProperty.all(AppColors.buttonColor),
+                      ),
                       icon: const Icon(Icons.play_arrow, color: AppColors.buttonTextColor),
                       label: const Text(
                         'Commencer une partie',
@@ -115,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // Button to Join a Game
                   FractionallySizedBox(
-                    widthFactor: 0.8, // Adjust width to 80% of the parent width
+                    widthFactor: 0.8,
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
@@ -125,7 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       style: AppTheme.elevatedButtonStyle.copyWith(
                         backgroundColor: MaterialStateProperty.all(AppColors.buttonColor),
-                      ), // Use button style from theme
+                      ),
                       icon: const Icon(Icons.qr_code_scanner, color: AppColors.buttonTextColor),
                       label: const Text(
                         'Rejoindre une partie',

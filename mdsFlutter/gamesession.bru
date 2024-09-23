@@ -1,0 +1,18 @@
+meta {
+  name: gamesession
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://pictioniary.wevox.cloud/api/login
+  body: json
+  auth: none
+}
+
+body:json {
+   {
+     "name":"moi",
+    "password":"azerty"
+   }
+}

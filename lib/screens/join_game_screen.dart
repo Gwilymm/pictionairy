@@ -1,8 +1,8 @@
-// lib/screens/join_game_screen.dart
 import 'package:flutter/material.dart';
-import 'package:qr_code_dart_scan/qr_code_dart_scan.dart'; // Import QR code scanner package
-import 'package:pictionairy/utils/theme.dart'; // Import AppTheme
-import 'package:pictionairy/utils/colors.dart'; // Import AppColors
+import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
+import 'package:pictionairy/utils/theme.dart';
+import 'package:pictionairy/utils/colors.dart';
+import 'package:pictionairy/utils/api_service.dart'; // Import your API service
 
 class JoinGameScreen extends StatefulWidget {
   const JoinGameScreen({Key? key}) : super(key: key);
@@ -15,16 +15,15 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true, // Allows background to extend behind the AppBar
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Rejoindre une partie'),
-        backgroundColor: Colors.transparent, // Make AppBar transparent to show background
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
       ),
       body: Stack(
         children: [
-          // Grape soda background with gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -37,13 +36,9 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
               ),
             ),
           ),
-
-          // Animated Bubble Background using BubbleBackground class
           Positioned.fill(
-            child: BubbleBackground.buildBubbles(), // Reusable bubble background
+            child: BubbleBackground.buildBubbles(),
           ),
-
-          // Main content
           Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -62,21 +57,21 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
                     aspectRatio: 1,
                     child: QRCodeDartScanView(
                       onCapture: (data) {
-                        _showQRCodeInfo(context, data); // Show QR code info when scanned
+                        _handleQRCodeScan(context, data);
                       },
                     ),
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
-                    width: 200, // Set a fixed width for the button
+                    width: 200,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Add your onPressed code here if needed
+                        // Additional functionality if needed
                       },
-                      style: AppTheme.elevatedButtonStyle, // Use button style from theme
+                      style: AppTheme.elevatedButtonStyle,
                       child: const Text(
                         'Scan QR Code',
-                        style: AppTheme.buttonTextStyle, // Use button text style from theme
+                        style: AppTheme.buttonTextStyle,
                       ),
                     ),
                   ),
@@ -89,26 +84,90 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
     );
   }
 
-  /// Displays a popup dialog with the QR code information.
-  ///
-  /// \param context The build context.
-  /// \param data The data captured from the QR code.
-  void _showQRCodeInfo(BuildContext context, dynamic data) {
-    String displayData;
+  void _handleQRCodeScan(BuildContext context, dynamic data) async {
+    String? sessionId;
+
     if (data is String) {
-      displayData = data;
+      sessionId = data;
     } else if (data is Result) {
-      displayData = data.text;
-    } else {
-      displayData = data.toString();
+      sessionId = data.text;
     }
 
+    if (sessionId != null) {
+      // After extracting sessionId, attempt to join the session
+      await _joinGameSession(context, sessionId);
+    } else {
+      _showErrorDialog(context, 'Invalid QR Code');
+    }
+  }
+
+  Future<void> _joinGameSession(BuildContext context, String sessionId) async {
+    // Show dialog to choose team color
+    final color = await _showColorChoiceDialog(context);
+    if (color == null) return; // User canceled the color selection
+
+    final response = await ApiService.joinGameSession(sessionId, color);
+
+    if (response != null) {
+      _showSuccessDialog(context, 'You have joined the session!');
+    } else {
+      _showErrorDialog(context, 'Failed to join the session.');
+    }
+  }
+
+  Future<String?> _showColorChoiceDialog(BuildContext context) {
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Choose a Team'),
+          content: const Text('Select a team to join:'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Blue'),
+              onPressed: () {
+                Navigator.of(context).pop('blue');
+              },
+            ),
+            TextButton(
+              child: const Text('Red'),
+              onPressed: () {
+                Navigator.of(context).pop('red');
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('QR Code Information'),
-          content: Text('Data: $displayData'),
+          title: const Text('Success'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
           actions: <Widget>[
             TextButton(
               child: const Text('OK'),

@@ -1,18 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:pictionairy/utils/api_service.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:pictionairy/utils/colors.dart'; // Import your color utilities
-import 'package:pictionairy/utils/theme.dart'; // Import BubbleBackground from theme.dart
-import 'challenge_create_screen.dart'; // Import the challenge create screen
+import 'package:pictionairy/utils/colors.dart';
+import 'package:pictionairy/utils/theme.dart';
+import 'challenge_create_screen.dart';
 
-class StartGameScreen extends StatelessWidget {
+class StartGameScreen extends StatefulWidget {
   final String connectedUser;
+  final String sessionId;
+  final Map<String, dynamic> gameSession;
 
-  const StartGameScreen({Key? key, required this.connectedUser}) : super(key: key);
+  const StartGameScreen({
+    Key? key,
+    required this.connectedUser,
+    required this.sessionId,
+    required this.gameSession,
+  }) : super(key: key);
+
+  @override
+  _StartGameScreenState createState() => _StartGameScreenState();
+}
+
+class _StartGameScreenState extends State<StartGameScreen> {
+  late Future<List<String>> redTeam;
+  late Future<List<String>> blueTeam;
+
+  @override
+  void initState() {
+    super.initState();
+    redTeam = Future.wait([
+      _fetchPlayerNameSafely(widget.gameSession['red_player_1']),
+      _fetchPlayerNameSafely(widget.gameSession['red_player_2']),
+    ]);
+    blueTeam = Future.wait([
+      _fetchPlayerNameSafely(widget.gameSession['blue_player_1']),
+      _fetchPlayerNameSafely(widget.gameSession['blue_player_2']),
+    ]);
+  }
+
+  Future<String> _fetchPlayerNameSafely(String? playerId) async {
+    if (playerId == null) {
+      return '<Player not connected>'; // Return a placeholder if player ID is null
+    }
+    try {
+      final playerName = await ApiService.fetchPlayerName(playerId);
+      return playerName.isNotEmpty ? playerName : '<Player not connected>';
+    } catch (e) {
+      return '<Error fetching player name>'; // Return an error message in case of an exception
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final String joke = "Why don't scientists trust atoms? Because they make up everything!";
-
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -29,129 +68,60 @@ class StartGameScreen extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          // Grape soda background with gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryColor,
-                  AppColors.accentColor,
-                ],
+                colors: [AppColors.primaryColor, AppColors.accentColor],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
             ),
           ),
-
-          // Animated Bubble Background using BubbleBackground class
-          Positioned.fill(
-            child: BubbleBackground.buildBubbles(),
-          ),
-
-          // Main content
+          Positioned.fill(child: BubbleBackground.buildBubbles()),
           Padding(
-            padding: EdgeInsets.fromLTRB(
-              16.0,
-              MediaQuery.of(context).padding.top + kToolbarHeight + 16.0,
-              16.0,
-              16.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Team Blue
-                const Text(
-                  'Equipe Bleue',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _buildTeamContainer(
-                  players: [connectedUser, '<en attente>'],
-                  color: AppColors.teamBlueColor,
-                ),
-                const SizedBox(height: 30),
+            padding: const EdgeInsets.all(16.0),
+            child: FutureBuilder<List<List<String>>>(
+              future: Future.wait([redTeam, blueTeam]),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return const Center(
+                    child: Text('Erreur lors du chargement des noms des joueurs'),
+                  );
+                }
 
-                // Team Red
-                const Text(
-                  'Equipe Rouge',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                _buildTeamContainer(
-                  players: ['<en attente>', '<en attente>'],
-                  color: AppColors.teamRedColor,
-                ),
-                const Spacer(),
+                final redTeamNames = snapshot.data![0]; // Red team names
+                final blueTeamNames = snapshot.data![1]; // Blue team names
 
-                // QR Code with a joke
-                Center(
-                  child: QrImageView(
-                    data: joke,
-                    version: QrVersions.auto,
-                    size: 200.0,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Footer Message
-                const Center(
-                  child: Text(
-                    'La partie sera lancée automatiquement une fois les joueurs au complet',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Équipe Rouge',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
+                    const SizedBox(height: 10),
+                    Text(redTeamNames.join(", ")),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Équipe Bleue',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(blueTeamNames.join(", ")),
+                  ],
+                );
+              },
             ),
           ),
         ],
-      ),
-      // Adding FAB
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primaryColor,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ChallengeCreateScreen()),
-          );
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  // Helper method to build team container
-  Widget _buildTeamContainer({required List<String> players, required Color color}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: players
-            .map((player) => Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: Text(
-            player,
-            style: const TextStyle(color: Colors.white, fontSize: 18),
-          ),
-        ))
-            .toList(),
       ),
     );
   }

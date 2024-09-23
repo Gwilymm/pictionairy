@@ -1,9 +1,9 @@
-// lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'signup_screen.dart'; // Import SignupScreen
 import 'home_screen.dart'; // Import HomeScreen
-import '../utils/theme.dart'; // Import the theme if directly using AppTheme properties
+import 'signup_screen.dart'; // Import SignupScreen
+import '../utils/api_service.dart'; // Import ApiService
+import '../utils/theme.dart'; // Import the theme
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -23,25 +23,32 @@ class _LoginScreenState extends State<LoginScreen> {
       String username = _usernameController.text;
       String password = _passwordController.text;
 
-      // Login logic (e.g., API call to verify credentials)
-      print("Username: $username, Password: $password");
+      // Use ApiService to login
+      final token = await ApiService.login(username, password);
 
-      // Save the logged-in user to SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('connectedUser', username);
+      if (token != null) {
+        // Save the logged-in user to SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
 
-      // After successful login, navigate to the home screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+        // After successful login, navigate to the home screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      } else {
+        // Handle failed login
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed. Please check your credentials.')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Use background color from theme
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -51,36 +58,29 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Game title
                   Text(
                     'Piction.AI.ry',
-                    style: Theme.of(context).textTheme.displayLarge, // Use text style from theme
+                    style: Theme.of(context).textTheme.displayLarge,
                   ),
                   const SizedBox(height: 10),
-
-                  // Icon or logo
                   Icon(
                     Icons.lock_outline,
                     size: 100,
-                    color: Theme.of(context).colorScheme.primary, // Use primary color from theme
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(height: 20),
-
-                  // Section title
                   Text(
                     'Welcome Back!',
-                    style: Theme.of(context).textTheme.displayMedium, // Use text style from theme
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 10),
-
-                  // Subtitle
                   Text(
                     'Login to your account',
-                    style: Theme.of(context).textTheme.bodyLarge, // Use text style from theme
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
                   const SizedBox(height: 40),
 
-                  // Username input field
+                  // Username input
                   TextFormField(
                     controller: _usernameController,
                     decoration: InputDecoration(
@@ -90,7 +90,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    keyboardType: TextInputType.text,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your username';
@@ -103,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Password input field
+                  // Password input
                   TextFormField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
@@ -141,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        // Logic for "Forgot Password"
+                        // Handle "Forgot Password"
                       },
                       child: const Text('Forgot Password?'),
                     ),
@@ -151,56 +150,24 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Login Button
                   ElevatedButton(
                     onPressed: _login,
-                    style: AppTheme.elevatedButtonStyle, // Use button style from theme
+                    style: AppTheme.elevatedButtonStyle,
                     child: Text(
                       'Login',
-                      style: AppTheme.buttonTextStyle, // Use button text style from theme
+                      style: AppTheme.buttonTextStyle,
                     ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Divider
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          thickness: 1,
-                          color: Theme.of(context).dividerColor, // Use divider color from theme
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Text('or'),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          thickness: 1,
-                          color: Theme.of(context).dividerColor, // Use divider color from theme
-                        ),
-                      ),
-                    ],
                   ),
                   const SizedBox(height: 20),
 
                   // Sign Up Button
                   OutlinedButton(
                     onPressed: () {
-                      // Navigate to SignupScreen
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignupScreen(),
-                        ),
+                        MaterialPageRoute(builder: (context) => const SignupScreen()),
                       );
                     },
-                    style: AppTheme.outlinedButtonStyle, // Use button style from theme
-                    child: Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Theme.of(context).colorScheme.primary, // Remove const here
-                      ),
-                    ),
+                    style: AppTheme.outlinedButtonStyle,
+                    child: const Text('Sign Up'),
                   ),
                 ],
               ),

@@ -1,9 +1,8 @@
-// lib/screens/signup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:email_validator/email_validator.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/theme.dart'; // Import the theme
+import '../utils/api_service.dart'; // Import the API Service
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -14,48 +13,46 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController(); // Controller for username
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
-  Future<void> _saveSignupInfo(String username, String email, String password) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('username', username);
-    await prefs.setString('email', email);
-    await prefs.setString('password', password);
-  }
-
-  void _signup() async {
+  // Signup function using ApiService
+  Future<void> _signup() async {
     if (_formKey.currentState!.validate()) {
       String username = _usernameController.text;
-      String email = _emailController.text;
       String password = _passwordController.text;
 
-      // Signup logic (e.g., API call to register the user)
+      final response = await ApiService.createPlayer(username, password); // Using ApiService
 
-      // After a successful signup, save login information
-      await _saveSignupInfo(username, email, password);
+      if (response.statusCode == 201) {
+        Fluttertoast.showToast(
+          msg: "Account created successfully!",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
 
-      Fluttertoast.showToast(
-        msg: "Account created successfully!",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-      );
-
-      // Reset the form after successful signup
-      _formKey.currentState!.reset();
+        Navigator.pop(context); // Go back to login screen
+      } else {
+        Fluttertoast.showToast(
+          msg: "Failed to create account: ${response.body}",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Use background color from theme
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -65,18 +62,15 @@ class _SignupScreenState extends State<SignupScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Icon
                   Icon(
                     Icons.person_add_alt_1,
                     size: 100,
-                    color: Theme.of(context).primaryColor, // Use primary color from theme
+                    color: Theme.of(context).primaryColor,
                   ),
                   const SizedBox(height: 20),
-
-                  // Title
                   Text(
                     'Create Account',
-                    style: Theme.of(context).textTheme.displayMedium, // Use text style from theme
+                    style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 10),
 
@@ -97,29 +91,6 @@ class _SignupScreenState extends State<SignupScreen> {
                       }
                       if (value.length < 3) {
                         return 'Username must be at least 3 characters long';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Email Input Field
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: const Icon(Icons.email),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      if (!EmailValidator.validate(value)) {
-                        return 'Please enter a valid email';
                       }
                       return null;
                     },
@@ -195,10 +166,10 @@ class _SignupScreenState extends State<SignupScreen> {
                   // Sign Up Button
                   ElevatedButton(
                     onPressed: _signup,
-                    style: AppTheme.elevatedButtonStyle, // Use button style from theme
+                    style: AppTheme.elevatedButtonStyle,
                     child: Text(
                       'Sign Up',
-                      style: AppTheme.buttonTextStyle, // Use button text style from theme
+                      style: AppTheme.buttonTextStyle,
                     ),
                   ),
                   const SizedBox(height: 20),
