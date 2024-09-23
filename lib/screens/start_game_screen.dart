@@ -1,8 +1,8 @@
-// lib/screens/start_game_screen.dart
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:pictionairy/utils/colors.dart'; // Import your color utilities
 import 'package:pictionairy/utils/theme.dart'; // Import BubbleBackground from theme.dart
+import 'challenge_create_screen.dart'; // Import the challenge create screen
 
 class StartGameScreen extends StatelessWidget {
   final String connectedUser;
@@ -14,13 +14,13 @@ class StartGameScreen extends StatelessWidget {
     final String joke = "Why don't scientists trust atoms? Because they make up everything!";
 
     return Scaffold(
-      extendBodyBehindAppBar: true, // Allows background to extend behind the AppBar
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // Make AppBar transparent to show background
+        backgroundColor: Colors.transparent,
         elevation: 1,
         title: const Text(
           'Composition des équipes',
-          style: TextStyle(color: Colors.black), // Title color
+          style: TextStyle(color: Colors.black),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -45,16 +45,16 @@ class StartGameScreen extends StatelessWidget {
 
           // Animated Bubble Background using BubbleBackground class
           Positioned.fill(
-            child: BubbleBackground.buildBubbles(), // Reusable bubble background
+            child: BubbleBackground.buildBubbles(),
           ),
 
           // Main content
           Padding(
             padding: EdgeInsets.fromLTRB(
-              16.0, // Left padding
-              MediaQuery.of(context).padding.top + kToolbarHeight + 16.0, // Top padding adjusted for AppBar and status bar
-              16.0, // Right padding
-              16.0, // Bottom padding
+              16.0,
+              MediaQuery.of(context).padding.top + kToolbarHeight + 16.0,
+              16.0,
+              16.0,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +71,7 @@ class StartGameScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 _buildTeamContainer(
                   players: [connectedUser, '<en attente>'],
-                  color: AppColors.teamBlueColor, // Use theme color
+                  color: AppColors.teamBlueColor,
                 ),
                 const SizedBox(height: 30),
 
@@ -87,7 +87,7 @@ class StartGameScreen extends StatelessWidget {
                 const SizedBox(height: 10),
                 _buildTeamContainer(
                   players: ['<en attente>', '<en attente>'],
-                  color: AppColors.teamRedColor // Use theme color
+                  color: AppColors.teamRedColor,
                 ),
                 const Spacer(),
 
@@ -117,6 +117,17 @@ class StartGameScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+      // Adding FAB
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ChallengeCreateScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

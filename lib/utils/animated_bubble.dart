@@ -1,6 +1,5 @@
 // lib/utils/animated_bubble.dart
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 class AnimatedBubble extends StatefulWidget {
   final double size;

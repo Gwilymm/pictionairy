@@ -102,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                       style: AppTheme.elevatedButtonStyle.copyWith(
-                        backgroundColor: MaterialStateProperty.all(AppColors.buttonColor),
+                        backgroundColor: WidgetStateProperty.all(AppColors.buttonColor),
                       ), // Use button style from theme
                       icon: const Icon(Icons.play_arrow, color: AppColors.buttonTextColor),
                       label: const Text(
