@@ -65,6 +65,18 @@
 
     </section>
     
+<section class="desc markdown">
+  <p>Logs in the user using the provided <code>formKey</code> for input validation.</p>
+<p>First, the method validates the form using <code>formKey</code>. If validation passes,
+it proceeds to call <a href="../../services_api_service/ApiService/login.html">ApiService.login</a> with the entered username and password.</p>
+<p>If the login is successful, it retrieves the user details using <a href="../../services_api_service/ApiService/getPlayerDetails.html">ApiService.getPlayerDetails</a>
+and saves them to shared preferences for later access. Returns <code>true</code> if the login and
+retrieval of user details are successful, otherwise returns <code>false</code>.</p>
+<p>Throws an error if <code>formKey</code> is not valid.</p>
+<ul>
+<li>Parameter <code>formKey</code>: A <a href="https://api.flutter.dev/flutter/widgets/GlobalKey-class.html">GlobalKey</a> used to validate the login form.</li>
+</ul>
+</section>
 
 
     
