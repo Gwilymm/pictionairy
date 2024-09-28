@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pictionairy/utils/api_service.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:pictionairy/services/api_service.dart';
 import 'package:pictionairy/utils/colors.dart';
 import 'package:pictionairy/utils/theme.dart';
-import 'challenge_create_screen.dart';
 
 class StartGameScreen extends StatefulWidget {
   final String connectedUser;
@@ -11,11 +9,11 @@ class StartGameScreen extends StatefulWidget {
   final Map<String, dynamic> gameSession;
 
   const StartGameScreen({
-    Key? key,
+    super.key,
     required this.connectedUser,
     required this.sessionId,
     required this.gameSession,
-  }) : super(key: key);
+  });
 
   @override
   _StartGameScreenState createState() => _StartGameScreenState();
@@ -29,12 +27,12 @@ class _StartGameScreenState extends State<StartGameScreen> {
   void initState() {
     super.initState();
     redTeam = Future.wait([
-      _fetchPlayerNameSafely(widget.gameSession['red_player_1']),
-      _fetchPlayerNameSafely(widget.gameSession['red_player_2']),
+      _fetchPlayerNameSafely(widget.gameSession['red_player_1'].toString()),
+      _fetchPlayerNameSafely(widget.gameSession['red_player_2'].toString()),
     ]);
     blueTeam = Future.wait([
-      _fetchPlayerNameSafely(widget.gameSession['blue_player_1']),
-      _fetchPlayerNameSafely(widget.gameSession['blue_player_2']),
+      _fetchPlayerNameSafely(widget.gameSession['blue_player_1'].toString()),
+      _fetchPlayerNameSafely(widget.gameSession['blue_player_2'].toString()),
     ]);
   }
 

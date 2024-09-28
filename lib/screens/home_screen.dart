@@ -1,22 +1,21 @@
+// lib/screens/home_screen.dart
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:pictionairy/screens/join_game_screen.dart';
 import 'package:pictionairy/screens/start_game_screen.dart';
 import 'package:pictionairy/utils/theme.dart';
 import 'package:pictionairy/utils/colors.dart';
-import 'package:pictionairy/utils/shared_preferences_util.dart';
-import 'package:pictionairy/utils/api_service.dart';
-import 'dart:math';
+import '../controllers/home_controller.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final HomeController _homeController = HomeController();
   String? connectedUser;
 
   @override
@@ -26,10 +25,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadConnectedUser() async {
-    final user = await SharedPreferencesUtil.getConnectedUser();
+    final user = await _homeController.loadConnectedUser();
     setState(() {
       connectedUser = user;
     });
+  }
+
+  Future<void> _startGame() async {
+    final sessionDetails = await _homeController.createAndJoinGameSession();
+
+    if (sessionDetails != null && connectedUser != null) {
+      // Parse game session details and navigate to StartGameScreen
+      final gameSessionDetails = jsonDecode(sessionDetails) as Map<String, dynamic>;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StartGameScreen(
+            connectedUser: connectedUser!,
+            sessionId: gameSessionDetails['session_id'],
+            gameSession: gameSessionDetails,
+          ),
+        ),
+      );
+    } else {
+      // Handle failure to create or join session
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to create or join game session')),
+      );
+    }
   }
 
   @override
@@ -85,43 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   FractionallySizedBox(
                     widthFactor: 0.8,
                     child: ElevatedButton.icon(
-                      onPressed: connectedUser == null
-                          ? null
-                          : () async {
-                        // Step 1: Create game session
-                        final sessionId = await ApiService.createGameSession();
-
-                        if (sessionId != null) {
-                          // Step 2: Randomly assign team color (red or blue)
-                          final List<String> teamColors = ['red', 'blue'];
-                          final String randomTeam = teamColors[Random().nextInt(2)];
-
-                          // Step 3: Join the game session and get the response
-                          final joinResponse = await ApiService.joinGameSession(sessionId, randomTeam);
-
-                          if (joinResponse != null) {
-                            // Step 4: Decode the JSON response into a Map
-                            final gameSessionDetails = jsonDecode(joinResponse.body) as Map<String, dynamic>;
-
-                            // Step 5: Navigate to StartGameScreen with session details
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => StartGameScreen(
-                                  connectedUser: connectedUser!,
-                                  sessionId: sessionId,
-                                  gameSession: gameSessionDetails, // Pass session details
-                                ),
-                              ),
-                            );
-                          } else {
-                            print("Failed to join the game session");
-                          }
-                        } else {
-                          print("Failed to create game session");
-                        }
-                      },
-
+                      onPressed: connectedUser == null ? null : _startGame,
                       style: AppTheme.elevatedButtonStyle.copyWith(
                         backgroundColor: MaterialStateProperty.all(AppColors.buttonColor),
                       ),

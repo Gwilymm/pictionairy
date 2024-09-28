@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 import 'package:pictionairy/utils/theme.dart';
 import 'package:pictionairy/utils/colors.dart';
-import 'package:pictionairy/utils/api_service.dart'; // Import your API service
+import 'package:pictionairy/services/api_service.dart'; // Import your API service
 
 class JoinGameScreen extends StatefulWidget {
-  const JoinGameScreen({Key? key}) : super(key: key);
+  const JoinGameScreen({super.key});
 
   @override
   _JoinGameScreenState createState() => _JoinGameScreenState();
@@ -108,12 +108,8 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
 
     final response = await ApiService.joinGameSession(sessionId, color);
 
-    if (response != null) {
-      _showSuccessDialog(context, 'You have joined the session!');
-    } else {
-      _showErrorDialog(context, 'Failed to join the session.');
+    _showSuccessDialog(context, 'You have joined the session!');
     }
-  }
 
   Future<String?> _showColorChoiceDialog(BuildContext context) {
     return showDialog<String>(

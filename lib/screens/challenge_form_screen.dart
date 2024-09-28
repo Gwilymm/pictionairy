@@ -5,6 +5,8 @@ import 'package:pictionairy/utils/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChallengeFormScreen extends StatefulWidget {
+  const ChallengeFormScreen({super.key});
+
   @override
   _ChallengeFormScreenState createState() => _ChallengeFormScreenState();
 }
@@ -112,7 +114,7 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                       controller: _firstWordController,
                       decoration: InputDecoration(
                         labelText: "Votre premier mot",
-                        labelStyle: TextStyle(color: AppColors.secondaryColor),
+                        labelStyle: const TextStyle(color: AppColors.secondaryColor),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -170,7 +172,7 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                       controller: _secondWordController,
                       decoration: InputDecoration(
                         labelText: "Votre deuxieme mot",
-                        labelStyle: TextStyle(color: AppColors.secondaryColor),
+                        labelStyle: const TextStyle(color: AppColors.secondaryColor),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -186,7 +188,7 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                       controller: _forbiddenWordController,
                       decoration: InputDecoration(
                         labelText: "Ajouter un mot interdit",
-                        labelStyle: TextStyle(color: AppColors.secondaryColor),
+                        labelStyle: const TextStyle(color: AppColors.secondaryColor),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -207,7 +209,7 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                         }
                       },
                       style: AppTheme.elevatedButtonStyle.copyWith(
-                        backgroundColor: MaterialStateProperty.all(AppColors.buttonColor),
+                        backgroundColor: WidgetStateProperty.all(AppColors.buttonColor),
                       ),
                       icon: const Icon(Icons.add, color: AppColors.buttonTextColor),
                       label: const Text('Ajouter Mot Interdit', style: AppTheme.buttonTextStyle),

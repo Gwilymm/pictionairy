@@ -8,12 +8,12 @@ class AnimatedBubble extends StatefulWidget {
   final double opacity;
 
   const AnimatedBubble({
-    Key? key,
+    super.key,
     required this.size,
     required this.initialTop,
     required this.left,
     required this.opacity,
-  }) : super(key: key);
+  });
 
   @override
   _AnimatedBubbleState createState() => _AnimatedBubbleState();

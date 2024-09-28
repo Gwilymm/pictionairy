@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/theme.dart'; // Import the theme
-import '../utils/api_service.dart'; // Import the API Service
+import '../services/api_service.dart'; // Import the API Service
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({Key? key}) : super(key: key);
+  const SignupScreen({super.key});
 
   @override
   _SignupScreenState createState() => _SignupScreenState();
@@ -167,7 +166,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ElevatedButton(
                     onPressed: _signup,
                     style: AppTheme.elevatedButtonStyle,
-                    child: Text(
+                    child: const Text(
                       'Sign Up',
                       style: AppTheme.buttonTextStyle,
                     ),

@@ -6,6 +6,8 @@ import 'challenge_form_screen.dart';
 import 'dart:convert'; // For encoding/decoding JSON
 
 class ChallengeCreateScreen extends StatefulWidget {
+  const ChallengeCreateScreen({super.key});
+
   @override
   _ChallengeCreateScreenState createState() => _ChallengeCreateScreenState();
 }
@@ -138,7 +140,7 @@ class _ChallengeCreateScreenState extends State<ChallengeCreateScreen> {
                   onPressed: () async {
                     final Map<String, dynamic>? result = await Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => ChallengeFormScreen()),
+                      MaterialPageRoute(builder: (context) => const ChallengeFormScreen()),
                     );
                     if (result != null) {
                       setState(() {

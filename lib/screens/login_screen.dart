@@ -1,12 +1,12 @@
+// lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'home_screen.dart'; // Import HomeScreen
-import 'signup_screen.dart'; // Import SignupScreen
-import '../utils/api_service.dart'; // Import ApiService
-import '../utils/theme.dart'; // Import the theme
+import 'home_screen.dart';
+import 'signup_screen.dart';
+import '../controllers/login_controller.dart';
+import '../utils/theme.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -14,35 +14,31 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final LoginController _loginController = LoginController();
   bool _isPasswordVisible = false;
 
-  void _login() async {
-    if (_formKey.currentState!.validate()) {
-      String username = _usernameController.text;
-      String password = _passwordController.text;
+  Future<void> _login() async {
+    bool isLoggedIn = await _loginController.login(_formKey);
+    if (!mounted) return;
 
-      // Use ApiService to login
-      final token = await ApiService.login(username, password);
-
-      if (token != null) {
-        // Save the logged-in user to SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
-
-        // After successful login, navigate to the home screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      } else {
-        // Handle failed login
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed. Please check your credentials.')),
-        );
-      }
+    if (isLoggedIn) {
+      // Navigate to HomeScreen on successful login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } else {
+      // Handle failed login
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login failed. Please check your credentials.')),
+      );
     }
+  }
+
+  @override
+  void dispose() {
+    _loginController.dispose();
+    super.dispose();
   }
 
   @override
@@ -82,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Username input
                   TextFormField(
-                    controller: _usernameController,
+                    controller: _loginController.usernameController,
                     decoration: InputDecoration(
                       labelText: 'Username',
                       prefixIcon: const Icon(Icons.person),
@@ -104,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // Password input
                   TextFormField(
-                    controller: _passwordController,
+                    controller: _loginController.passwordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
                       labelText: 'Password',
@@ -151,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ElevatedButton(
                     onPressed: _login,
                     style: AppTheme.elevatedButtonStyle,
-                    child: Text(
+                    child: const Text(
                       'Login',
                       style: AppTheme.buttonTextStyle,
                     ),
