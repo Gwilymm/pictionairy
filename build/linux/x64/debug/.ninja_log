@@ -1,0 +1,106 @@
+# ninja log v5
+4830	4973	0	CMakeFiles/install.util	cfc0f95322641cd6
+4728	4830	1727536733679167204	intermediates_do_not_run/pictionairy	1b23fb9f2c68f1af
+4408	4728	1727536733574167241	CMakeFiles/pictionairy.dir/my_application.cc.o	644cf37b182bfa6a
+4409	4705	1727536733552167249	CMakeFiles/pictionairy.dir/flutter/generated_plugin_registrant.cc.o	71ffc5279788e98
+2	4408	0	flutter/_phony_	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/flutter_linux.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_view.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_standard_message_codec.h	2fecea3e6dd25a74
+11935	13422	1727534867694735018	CMakeFiles/pictionairy.dir/main.cc.o	9a279a20815bd18
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_message_codec.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_basic_message_channel.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_codec.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_binary_codec.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_binary_messenger.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_plugin_registry.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_call.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_plugin_registrar.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_dart_project.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_json_message_codec.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_engine.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_value.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_string_codec.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_standard_method_codec.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_json_method_codec.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_channel.h	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/libflutter_linux_gtk.so	2fecea3e6dd25a74
+2	4408	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_response.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/libflutter_linux_gtk.so	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_basic_message_channel.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_binary_codec.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_binary_messenger.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_dart_project.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_engine.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_json_message_codec.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_json_method_codec.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_message_codec.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_call.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_channel.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_codec.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_response.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_plugin_registrar.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_plugin_registry.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_standard_message_codec.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_standard_method_codec.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_string_codec.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_value.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_view.h	2fecea3e6dd25a74
+3	4691	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/flutter_linux.h	2fecea3e6dd25a74
+3	4691	0	flutter/_phony_	2fecea3e6dd25a74
+4692	5955	1727537083264044045	CMakeFiles/pictionairy.dir/flutter/generated_plugin_registrant.cc.o	71ffc5279788e98
+4692	6015	1727537083334044021	CMakeFiles/pictionairy.dir/my_application.cc.o	644cf37b182bfa6a
+6015	6605	1727537083932043810	intermediates_do_not_run/pictionairy	1b23fb9f2c68f1af
+6606	6759	0	CMakeFiles/install.util	cfc0f95322641cd6
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/libflutter_linux_gtk.so	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_basic_message_channel.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_binary_codec.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_binary_messenger.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_dart_project.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_engine.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_json_message_codec.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_json_method_codec.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_message_codec.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_call.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_channel.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_codec.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_response.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_plugin_registrar.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_plugin_registry.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_standard_message_codec.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_standard_method_codec.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_string_codec.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_value.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_view.h	2fecea3e6dd25a74
+2	4699	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/flutter_linux.h	2fecea3e6dd25a74
+2	4699	0	flutter/_phony_	2fecea3e6dd25a74
+4700	5934	1727537306462107891	CMakeFiles/pictionairy.dir/flutter/generated_plugin_registrant.cc.o	71ffc5279788e98
+4700	6016	1727537306542107982	CMakeFiles/pictionairy.dir/my_application.cc.o	644cf37b182bfa6a
+6016	6206	1727537306736108204	intermediates_do_not_run/pictionairy	1b23fb9f2c68f1af
+6206	6340	0	CMakeFiles/install.util	cfc0f95322641cd6
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/libflutter_linux_gtk.so	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_basic_message_channel.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_binary_codec.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_binary_messenger.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_dart_project.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_engine.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_json_message_codec.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_json_method_codec.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_message_codec.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_call.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_channel.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_codec.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_method_response.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_plugin_registrar.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_plugin_registry.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_standard_message_codec.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_standard_method_codec.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_string_codec.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_value.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/fl_view.h	2fecea3e6dd25a74
+3	4526	0	/home/gwilym/Documents/mds/M2/dev mobile/pictionairy/linux/flutter/ephemeral/flutter_linux/flutter_linux.h	2fecea3e6dd25a74
+3	4526	0	flutter/_phony_	2fecea3e6dd25a74
+4526	5018	1727537733710592475	CMakeFiles/pictionairy.dir/flutter/generated_plugin_registrant.cc.o	71ffc5279788e98
+4526	5155	1727537733846592571	CMakeFiles/pictionairy.dir/my_application.cc.o	644cf37b182bfa6a
+5155	5548	1727537734240592851	intermediates_do_not_run/pictionairy	1b23fb9f2c68f1af
+5549	5696	0	CMakeFiles/install.util	cfc0f95322641cd6

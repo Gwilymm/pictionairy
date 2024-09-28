@@ -1,0 +1,1 @@
+ /home/gwilym/Documents/mds/M2/dev\ mobile/pictionairy/.dart_tool/flutter_build/aa6c799002cf45a29b667f1021b50ce2/native_assets.yaml: 
