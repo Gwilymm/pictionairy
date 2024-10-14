@@ -3,6 +3,7 @@
 /// It interacts with the UI to validate user inputs, communicates with the
 /// [ApiService] to authenticate the user, and stores the logged-in user's details
 /// using [SharedPreferencesUtil].
+library;
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import '../services/api_service.dart';

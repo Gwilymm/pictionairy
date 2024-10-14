@@ -111,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: ElevatedButton.icon(
                       onPressed: connectedUser == null ? null : _startGame,
                       style: AppTheme.elevatedButtonStyle.copyWith(
-                        backgroundColor: MaterialStateProperty.all(AppColors.buttonColor),
+                        backgroundColor: WidgetStateProperty.all(AppColors.buttonColor),
                       ),
                       icon: const Icon(Icons.play_arrow, color: AppColors.buttonTextColor),
                       label: const Text(
@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                       },
                       style: AppTheme.elevatedButtonStyle.copyWith(
-                        backgroundColor: MaterialStateProperty.all(AppColors.buttonColor),
+                        backgroundColor: WidgetStateProperty.all(AppColors.buttonColor),
                       ),
                       icon: const Icon(Icons.qr_code_scanner, color: AppColors.buttonTextColor),
                       label: const Text(
