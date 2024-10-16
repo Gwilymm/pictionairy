@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:pictionairy/controllers/challenge_form_controller.dart';
 import 'package:pictionairy/utils/colors.dart';
 import 'package:pictionairy/utils/theme.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 class ChallengeFormScreen extends StatefulWidget {
   const ChallengeFormScreen({super.key});
@@ -16,42 +16,15 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
   final TextEditingController _firstWordController = TextEditingController();
   final TextEditingController _secondWordController = TextEditingController();
   final TextEditingController _forbiddenWordController = TextEditingController();
-  List<String> forbiddenWords = [];
 
   List<bool> isSelectedFirst = [true, false]; // UN/UNE
   List<bool> isSelectedPreposition = [true, false]; // SUR/DANS
   List<bool> isSelectedSecond = [true, false]; // UN/UNE (bottom)
 
-  String? _validateWord(String value) {
-    if (value.isEmpty) {
-      return 'Ce champ ne peut pas être vide';
-    } else if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
-      return 'Seules les lettres et espaces sont autorisés';
-    }
-    return null;
-  }
-
-  Future<List<Map<String, dynamic>>> _loadChallenges() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String>? challenges = prefs.getStringList('challenges');
-    if (challenges != null) {
-      return challenges.map((challenge) {
-        return jsonDecode(challenge) as Map<String, dynamic>;
-      }).toList();
-    }
-    return [];
-  }
-
-  Future<void> _saveChallenges(List<Map<String, dynamic>> challenges) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> encodedChallenges = challenges.map((challenge) {
-      return jsonEncode(challenge);
-    }).toList();
-    await prefs.setStringList('challenges', encodedChallenges);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final controller = Provider.of<ChallengeFormController>(context);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -62,7 +35,6 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
       ),
       body: Stack(
         children: [
-          // Background with gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -75,11 +47,9 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
               ),
             ),
           ),
-          // Bubble Background
           Positioned.fill(
             child: BubbleBackground.buildBubbles(),
           ),
-          // Main content
           Padding(
             padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + kToolbarHeight, 16, 16),
             child: Form(
@@ -88,153 +58,69 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Toggle Buttons (UN/UNE)
-                    Align(
-                      alignment: Alignment.center,
-                      child: ToggleButtons(
-                        isSelected: isSelectedFirst,
-                        borderRadius: BorderRadius.circular(30),
-                        selectedColor: Colors.white,
-                        fillColor: Colors.purple,
-                        children: const [
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("UN")),
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("UNE")),
-                        ],
-                        onPressed: (int index) {
-                          setState(() {
-                            isSelectedFirst = [index == 0, index == 1];
-                          });
-                        },
-                      ),
+                    _buildToggleButtons(
+                      label: 'UN/UNE',
+                      isSelected: isSelectedFirst,
+                      options: const ['UN', 'UNE'],
+                      onPressed: (index) => setState(() => isSelectedFirst = [index == 0, index == 1]),
                     ),
                     const SizedBox(height: 20),
-
-                    // First word input
-                    TextFormField(
+                    _buildTextInput(
                       controller: _firstWordController,
-                      decoration: InputDecoration(
-                        labelText: "Votre premier mot",
-                        labelStyle: const TextStyle(color: AppColors.secondaryColor),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      validator: (value) => _validateWord(value!),
+                      label: "Votre premier mot",
+                      validator: (value) => controller.validateWord(value!),
                     ),
                     const SizedBox(height: 20),
-
-                    // Toggle Buttons (SUR/DANS)
-                    Align(
-                      alignment: Alignment.center,
-                      child: ToggleButtons(
-                        isSelected: isSelectedPreposition,
-                        borderRadius: BorderRadius.circular(30),
-                        selectedColor: Colors.white,
-                        fillColor: Colors.purple,
-                        children: const [
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("SUR")),
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("DANS")),
-                        ],
-                        onPressed: (int index) {
-                          setState(() {
-                            isSelectedPreposition = [index == 0, index == 1];
-                          });
-                        },
-                      ),
+                    _buildToggleButtons(
+                      label: 'SUR/DANS',
+                      isSelected: isSelectedPreposition,
+                      options: const ['SUR', 'DANS'],
+                      onPressed: (index) => setState(() => isSelectedPreposition = [index == 0, index == 1]),
                     ),
                     const SizedBox(height: 20),
-
-                    // Toggle Buttons (UN/UNE) bottom
-                    Align(
-                      alignment: Alignment.center,
-                      child: ToggleButtons(
-                        isSelected: isSelectedSecond,
-                        borderRadius: BorderRadius.circular(30),
-                        selectedColor: Colors.white,
-                        fillColor: Colors.purple,
-                        children: const [
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("UN")),
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 20), child: Text("UNE")),
-                        ],
-                        onPressed: (int index) {
-                          setState(() {
-                            isSelectedSecond = [index == 0, index == 1];
-                          });
-                        },
-                      ),
+                    _buildToggleButtons(
+                      label: 'UN/UNE',
+                      isSelected: isSelectedSecond,
+                      options: const ['UN', 'UNE'],
+                      onPressed: (index) => setState(() => isSelectedSecond = [index == 0, index == 1]),
                     ),
                     const SizedBox(height: 20),
-
-                    // Second word input
-                    TextFormField(
+                    _buildTextInput(
                       controller: _secondWordController,
-                      decoration: InputDecoration(
-                        labelText: "Votre deuxieme mot",
-                        labelStyle: const TextStyle(color: AppColors.secondaryColor),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      validator: (value) => _validateWord(value!),
+                      label: "Votre deuxième mot",
+                      validator: (value) => controller.validateWord(value!),
                     ),
                     const SizedBox(height: 20),
-
-                    // Forbidden words input and chips
-                    TextFormField(
+                    _buildTextInput(
                       controller: _forbiddenWordController,
-                      decoration: InputDecoration(
-                        labelText: "Ajouter un mot interdit",
-                        labelStyle: const TextStyle(color: AppColors.secondaryColor),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
+                      label: "Ajouter un mot interdit",
                     ),
                     const SizedBox(height: 10),
-
                     ElevatedButton.icon(
                       onPressed: () {
                         if (_forbiddenWordController.text.isNotEmpty &&
-                            _validateWord(_forbiddenWordController.text) == null) {
-                          setState(() {
-                            forbiddenWords.add(_forbiddenWordController.text);
-                            _forbiddenWordController.clear();
-                          });
+                            controller.validateWord(_forbiddenWordController.text) == null) {
+                          controller.addForbiddenWord(_forbiddenWordController.text);
+                          _forbiddenWordController.clear();
                         }
                       },
-                      style: AppTheme.elevatedButtonStyle.copyWith(
-                        backgroundColor: WidgetStateProperty.all(AppColors.buttonColor),
-                      ),
                       icon: const Icon(Icons.add, color: AppColors.buttonTextColor),
                       label: const Text('Ajouter Mot Interdit', style: AppTheme.buttonTextStyle),
+                      style: AppTheme.elevatedButtonStyle,
                     ),
                     const SizedBox(height: 20),
-
-                    // Display forbidden words as chips
                     Wrap(
                       spacing: 8.0,
-                      children: forbiddenWords
+                      children: controller.forbiddenWords
                           .map(
                             (word) => Chip(
-                          label: Text(word),
-                          onDeleted: () {
-                            setState(() {
-                              forbiddenWords.remove(word);
-                            });
-                          },
-                        ),
-                      )
+                              label: Text(word),
+                              onDeleted: () => controller.removeForbiddenWord(word),
+                            ),
+                          )
                           .toList(),
                     ),
                     const SizedBox(height: 20),
-
-                    // Submit Button
                     ElevatedButton.icon(
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
@@ -244,25 +130,20 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                             'preposition': isSelectedPreposition[0] ? "SUR" : "DANS",
                             'secondToggle': isSelectedSecond[0] ? "UN" : "UNE",
                             'secondWord': _secondWordController.text,
-                            'forbiddenWords': forbiddenWords,
+                            'forbiddenWords': controller.forbiddenWords,
                           };
 
-                          // Load existing challenges
-                          List<Map<String, dynamic>> existingChallenges = await _loadChallenges();
-
-                          // Add the new challenge to the list
+                          List<Map<String, dynamic>> existingChallenges =
+                              await controller.loadChallenges();
                           existingChallenges.add(challenge);
+                          await controller.saveChallenges(existingChallenges);
 
-                          // Save the updated challenge list
-                          await _saveChallenges(existingChallenges);
-
-                          // Return to previous screen
                           Navigator.pop(context, challenge);
                         }
                       },
-                      style: AppTheme.elevatedButtonStyle,
                       icon: const Icon(Icons.check, color: AppColors.buttonTextColor),
                       label: const Text('Ajouter', style: AppTheme.buttonTextStyle),
+                      style: AppTheme.elevatedButtonStyle,
                     ),
                   ],
                 ),
@@ -271,6 +152,50 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildToggleButtons({
+    required String label,
+    required List<bool> isSelected,
+    required List<String> options,
+    required void Function(int) onPressed,
+  }) {
+    return Align(
+      alignment: Alignment.center,
+      child: ToggleButtons(
+        isSelected: isSelected,
+        borderRadius: BorderRadius.circular(30),
+        selectedColor: Colors.white,
+        fillColor: Colors.purple,
+        children: options
+            .map((option) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(option),
+                ))
+            .toList(),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  Widget _buildTextInput({
+    required TextEditingController controller,
+    required String label,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: AppColors.secondaryColor),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      validator: validator,
     );
   }
 }
