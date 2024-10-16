@@ -23,14 +23,13 @@ class HomeController {
       // Step 3: Join the game session
       final joinResponse = await ApiService.joinGameSession(sessionId, randomTeam);
       if ( joinResponse.statusCode != 200) {
-        debugPrint('Error joining game session: ${joinResponse.body}');
         return null;
       }
 
       // Return game session details as JSON string
       return joinResponse.body;
     } catch (e) {
-      print('Error creating or joining session: $e');
+      debugPrint('Error creating or joining session: $e');
       return null;
     }
   }
