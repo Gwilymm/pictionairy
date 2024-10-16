@@ -12,9 +12,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set Working Directory
-        run: cd '/home/gwilym/Documents/mds/M2/dev mobile/pictionairy'
-
       - name: Install Flutter dependencies
         run: flutter pub get
 
