@@ -5,5 +5,15 @@
 	    "managers": ["pub"],
 	    "enabled": true
 	  }
-	]
+	],
+	"semanticCommits": "enabled",  
+	"labels": ["dependencies"],    
+	"automerge": false,            
+	"major": {
+	  "enabled": true              
+	},
+	"schedule": ["before 5am on the first day of the month"], 
+	"prHourlyLimit": 5,             
+	"prConcurrentLimit": 10        
    }
+   
