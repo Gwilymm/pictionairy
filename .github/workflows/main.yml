@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Install dependencies
-        run: npm install
+      - name: Install Flutter dependencies
+        run: flutter pub get
       - name: Run Semantic-release
         run: npx semantic-release
