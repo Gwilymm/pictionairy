@@ -29,4 +29,4 @@ jobs:
           RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RENOVATE_AUTODISCOVER: "false" # Set to false since you're targeting a specific repo
-        run: renovate https://github.com/Gwilymm/pictionairy
+        run: renovate Gwilymm/pictionairy
