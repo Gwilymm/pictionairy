@@ -3,6 +3,9 @@ name: Renovate
 on:
   schedule:
     - cron: "*/5 * * * *" # Exécute toutes les 5 minutes pour tester
+  push:
+    branches:
+      - main
 
 jobs:
   renovate:
