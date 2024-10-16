@@ -17,4 +17,6 @@ jobs:
       - name: Install Renovate
         run: npm install -g renovate
       - name: Run Renovate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: renovate

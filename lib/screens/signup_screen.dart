@@ -85,14 +85,18 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     keyboardType: TextInputType.text,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your username';
-                      }
-                      if (value.length < 3) {
-                        return 'Username must be at least 3 characters long';
-                      }
-                      return null;
-                    },
+  if (value == null || value.isEmpty) {
+    return 'Please enter your username';
+  }
+  if (value.contains(' ')) {
+    return 'Username cannot contain spaces';
+  }
+  if (value.length < 3) {
+    return 'Username must be at least 3 characters long';
+  }
+  return null;
+},
+
                   ),
                   const SizedBox(height: 20),
 
