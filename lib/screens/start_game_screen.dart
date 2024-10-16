@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:pictionairy/services/api_service.dart';
+import 'package:pictionairy/controllers/start_game_controller.dart';
 import 'package:pictionairy/utils/colors.dart';
 import 'package:pictionairy/utils/theme.dart';
+import 'package:provider/provider.dart';
 
 class StartGameScreen extends StatefulWidget {
   final String connectedUser;
@@ -20,35 +21,14 @@ class StartGameScreen extends StatefulWidget {
 }
 
 class _StartGameScreenState extends State<StartGameScreen> {
-  late Future<List<String>> redTeam;
-  late Future<List<String>> blueTeam;
+  late StartGameController _controller;
 
   @override
   void initState() {
     super.initState();
-
-
-  Future<String> _fetchPlayerNameSafely(int? playerId) async {
-    if (playerId == null) {
-      return '<Player not connected>'; // Return a placeholder if player ID is null
-    }
-    try {
-      final playerName = await ApiService.fetchPlayerName(playerId);
-      return playerName.isNotEmpty ? playerName : '<Player not connected>';
-    } catch (e) {
-      return '<Error fetching player name>'; // Return an error message in case of an exception
-    }
+    _controller = StartGameController(widget.gameSession);
   }
-  debugPrint('Session ID: ${widget.gameSession}');
-    redTeam = Future.wait([
-      _fetchPlayerNameSafely(widget.gameSession['red_player_1']),
-      _fetchPlayerNameSafely(widget.gameSession['red_player_2']),
-    ]);
-    blueTeam = Future.wait([
-      _fetchPlayerNameSafely(widget.gameSession['blue_player_1']),
-      _fetchPlayerNameSafely(widget.gameSession['blue_player_2']),
-    ]);
-  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,7 +64,10 @@ class _StartGameScreenState extends State<StartGameScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: FutureBuilder<List<List<String>>>(
-              future: Future.wait([redTeam, blueTeam]),
+              future: Future.wait([
+                _controller.getRedTeam(),
+                _controller.getBlueTeam(),
+              ]),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -94,94 +77,66 @@ class _StartGameScreenState extends State<StartGameScreen> {
                   );
                 }
 
-                final redTeamNames = snapshot.data![0]; // Red team names
-                final blueTeamNames = snapshot.data![1]; // Blue team names
+                final redTeamNames = snapshot.data![0];
+                final blueTeamNames = snapshot.data![1];
 
                 return Padding(
-                  padding: const EdgeInsets.only(top: kToolbarHeight + 30.0), // Add padding to avoid overlap with app bar
+                  padding: const EdgeInsets.only(top: kToolbarHeight + 30.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              offset: Offset(0, 4),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: const Text(
-                          'Équipe Rouge',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 5), // Reduced height
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: redTeamNames.length,
-                          itemBuilder: (context, index) {
-                            return Card(
-                              color: Colors.redAccent.withOpacity(0.7),
-                              child: ListTile(
-                                title: Text(
-                                  redTeamNames[index],
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 10), // Reduced height
-                      Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          color: Colors.blueAccent.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              offset: Offset(0, 4),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: const Text(
-                          'Équipe Bleue',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 5), // Reduced height
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: blueTeamNames.length,
-                          itemBuilder: (context, index) {
-                            return Card(
-                              color: Colors.blueAccent.withOpacity(0.7),
-                              child: ListTile(
-                                title: Text(
-                                  blueTeamNames[index],
-                                  style: const TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                      _buildTeamSection('Équipe Rouge', redTeamNames, Colors.redAccent),
+                      const SizedBox(height: 10),
+                      _buildTeamSection('Équipe Bleue', blueTeamNames, Colors.blueAccent),
                     ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTeamSection(String teamName, List<String> teamMembers, Color color) {
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  offset: Offset(0, 4),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: Text(
+              teamName,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Expanded(
+            child: ListView.builder(
+              itemCount: teamMembers.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  color: color.withOpacity(0.7),
+                  child: ListTile(
+                    title: Text(
+                      teamMembers[index],
+                      style: const TextStyle(color: Colors.white),
+                    ),
                   ),
                 );
               },
