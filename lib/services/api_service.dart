@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,11 +39,12 @@ class ApiService {
   }
 
   // Method to get player details by ID (Protected by JWT)
-  static Future<http.Response> getPlayerDetails(String playerId) async {
+  static Future<http.Response> getPlayerDetails(String token) async {
     final token = await _getToken();
+    debugPrint('Token: $token');
     if (token == null) return http.Response('Unauthorized', 401);
 
-    final url = Uri.parse('$baseUrl/players/$playerId');
+    final url = Uri.parse('$baseUrl/me');
     final response = await http.get(
       url,
       headers: {
@@ -54,7 +56,7 @@ class ApiService {
   }
 
   // Fetch the player's name using the player ID
-  static Future<String> fetchPlayerName(String playerId) async {
+  static Future<String> fetchPlayerName(int playerId) async {
     try {
       final response = await getPlayerDetails(playerId);
       if (response.statusCode == 200) {
@@ -113,6 +115,7 @@ class ApiService {
     if (token == null) return http.Response('Unauthorized', 401);
 
     final url = Uri.parse('$baseUrl/game_sessions/$sessionId/join');
+
     final response = await http.post(
       url,
       headers: {
@@ -121,7 +124,21 @@ class ApiService {
       },
       body: jsonEncode({'color': teamColor}),
     );
+    debugPrint('Join Response: ${response.body}');
     return response;
+  }
+
+  // get the list of players in a game session
+  static Future<List<String>> getGameSessionPlayers(String sessionId) async {
+    final response = await getGameSessionDetails(sessionId);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final redTeamPlayers = List<String>.from(data['red_team_players']);
+      final blueTeamPlayers = List<String>.from(data['blue_team_players']);
+      return redTeamPlayers + blueTeamPlayers;
+    } else {
+      return [];
+    }
   }
 
   // Method to leave a game session (Protected by JWT)

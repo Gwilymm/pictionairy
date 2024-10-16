@@ -33,4 +33,9 @@ class HomeController {
       return null;
     }
   }
+  /// Logs out the user by clearing the stored token and user details.
+  Future<void> logout() async {
+    await SharedPreferencesUtil.clearToken();
+    await SharedPreferencesUtil.clearConnectedUser();
+  }
 }

@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: https://pictioniary.wevox.cloud/api/players
+  url: https://pictioniary.wevox.cloud/api/login
   body: json
   auth: none
 }
@@ -15,4 +15,8 @@ body:json {
      "name":"moi",
     "password":"azerty"
    }
+}
+
+script:post-response {
+  bru.setEnvVar("Bearer","Bearer "+ res.body.token);
 }

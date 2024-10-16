@@ -46,3 +46,5 @@ app.*.map.json
 
 # Ignore Gradle build output directory
 build
+.github/
+actions-runner/

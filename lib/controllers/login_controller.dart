@@ -38,13 +38,16 @@ class LoginController {
 
     // Step 1: Login to get the token
     final token = await ApiService.login(username, password);
+    // store token in shared preferences
 
     if (token != null) {
+      await SharedPreferencesUtil.setToken(token);
       // Step 2: Retrieve user details after successful login
-      final response = await ApiService.getPlayerDetails(username);
+      final response = await ApiService.getPlayerDetails(token);
+      debugPrint('Response: ${response.body}');
       if (response.statusCode == 200) {
         final userDetails = jsonDecode(response.body);
-
+        debugPrint('User Details: $userDetails');
         // Save user details to SharedPreferences
         await SharedPreferencesUtil.setConnectedUser(json.encode(userDetails));
         return true;
@@ -71,6 +74,11 @@ class LoginController {
     return null;
   }
 
+  /// Logs out the user by clearing the stored token and user details.
+  Future<void> logout() async {
+    await SharedPreferencesUtil.clearToken();
+    await SharedPreferencesUtil.clearConnectedUser();
+  }
   /// Retrieves the saved authentication token from shared preferences.
   ///
   /// This method is used to get the JWT token for authenticating API requests
@@ -80,6 +88,34 @@ class LoginController {
   /// is saved.
   Future<String?> getToken() async {
     return await SharedPreferencesUtil.getToken();
+  }
+
+  /// Attempts to automatically log in the user using a saved token.
+  ///
+  /// This method retrieves the saved token from shared preferences and uses it to fetch
+  /// the user's details from the server. If the token is valid and the user details are
+  /// successfully retrieved, the user details are saved to shared preferences and the
+  /// method returns `true`. If the token is invalid or the user details cannot be retrieved,
+  /// the method returns `false`.
+  ///
+  /// - Returns: A `Future<bool>` that completes with `true` if the auto-login is successful,
+  ///   or `false` otherwise.
+  Future<bool> autoLogin() async {
+    String? token = await SharedPreferencesUtil.getToken();
+    if (token != null) {
+      // Use the token to fetch user details
+      final response = await ApiService.getPlayerDetails(token);
+      if (response.statusCode == 200) {
+        final userDetails = jsonDecode(response.body);
+        debugPrint('User Details: $userDetails');
+        // Save user details to SharedPreferences
+        await SharedPreferencesUtil.setConnectedUser(json.encode(userDetails));
+        return true;
+      } else {
+        return false; // Failed to retrieve user details
+      }
+    }
+    return false; // No token found
   }
 
   /// Disposes the [TextEditingController] instances used for the username and password fields.

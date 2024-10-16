@@ -34,4 +34,14 @@ class SharedPreferencesUtil {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
+
+  static Future<void>clearToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+  }
+
+  static Future<void>clearConnectedUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_connectedUserKey);
+  }
 }

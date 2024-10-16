@@ -26,17 +26,9 @@ class _StartGameScreenState extends State<StartGameScreen> {
   @override
   void initState() {
     super.initState();
-    redTeam = Future.wait([
-      _fetchPlayerNameSafely(widget.gameSession['red_player_1'].toString()),
-      _fetchPlayerNameSafely(widget.gameSession['red_player_2'].toString()),
-    ]);
-    blueTeam = Future.wait([
-      _fetchPlayerNameSafely(widget.gameSession['blue_player_1'].toString()),
-      _fetchPlayerNameSafely(widget.gameSession['blue_player_2'].toString()),
-    ]);
-  }
 
-  Future<String> _fetchPlayerNameSafely(String? playerId) async {
+
+  Future<String> _fetchPlayerNameSafely(int? playerId) async {
     if (playerId == null) {
       return '<Player not connected>'; // Return a placeholder if player ID is null
     }
@@ -47,7 +39,16 @@ class _StartGameScreenState extends State<StartGameScreen> {
       return '<Error fetching player name>'; // Return an error message in case of an exception
     }
   }
-
+  debugPrint('Session ID: ${widget.gameSession}');
+    redTeam = Future.wait([
+      _fetchPlayerNameSafely(widget.gameSession['red_player_1']),
+      _fetchPlayerNameSafely(widget.gameSession['red_player_2']),
+    ]);
+    blueTeam = Future.wait([
+      _fetchPlayerNameSafely(widget.gameSession['blue_player_1']),
+      _fetchPlayerNameSafely(widget.gameSession['blue_player_2']),
+    ]);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,8 +57,12 @@ class _StartGameScreenState extends State<StartGameScreen> {
         backgroundColor: Colors.transparent,
         elevation: 1,
         title: const Text(
-          'Composition des équipes',
-          style: TextStyle(color: Colors.black),
+          'Composition des Équipes',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
@@ -92,29 +97,92 @@ class _StartGameScreenState extends State<StartGameScreen> {
                 final redTeamNames = snapshot.data![0]; // Red team names
                 final blueTeamNames = snapshot.data![1]; // Blue team names
 
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Équipe Rouge',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                return Padding(
+                  padding: const EdgeInsets.only(top: kToolbarHeight + 30.0), // Add padding to avoid overlap with app bar
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 4),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          'Équipe Rouge',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(redTeamNames.join(", ")),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Équipe Bleue',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: 5), // Reduced height
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: redTeamNames.length,
+                          itemBuilder: (context, index) {
+                            return Card(
+                              color: Colors.redAccent.withOpacity(0.7),
+                              child: ListTile(
+                                title: Text(
+                                  redTeamNames[index],
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(blueTeamNames.join(", ")),
-                  ],
+                      const SizedBox(height: 10), // Reduced height
+                      Container(
+                        padding: const EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.blueAccent.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 4),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          'Équipe Bleue',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5), // Reduced height
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: blueTeamNames.length,
+                          itemBuilder: (context, index) {
+                            return Card(
+                              color: Colors.blueAccent.withOpacity(0.7),
+                              child: ListTile(
+                                title: Text(
+                                  blueTeamNames[index],
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

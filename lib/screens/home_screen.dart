@@ -2,10 +2,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pictionairy/screens/join_game_screen.dart';
+import 'package:pictionairy/screens/login_screen.dart'; // Add this import
 import 'package:pictionairy/screens/start_game_screen.dart';
 import 'package:pictionairy/utils/theme.dart';
 import 'package:pictionairy/utils/colors.dart';
 import '../controllers/home_controller.dart';
+import '../controllers/login_controller.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +19,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final HomeController _homeController = HomeController();
+  final LoginController _loginController = LoginController(); // Add this line
+
   String? connectedUser;
 
   @override
@@ -35,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final sessionDetails = await _homeController.createAndJoinGameSession();
 
     if (sessionDetails != null && connectedUser != null) {
+
       // Parse game session details and navigate to StartGameScreen
       final gameSessionDetails = jsonDecode(sessionDetails) as Map<String, dynamic>;
 
@@ -43,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(
           builder: (context) => StartGameScreen(
             connectedUser: connectedUser!,
-            sessionId: gameSessionDetails['session_id'],
+            sessionId: gameSessionDetails['session_id'].toString(),
             gameSession: gameSessionDetails,
           ),
         ),
@@ -56,6 +62,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    await _loginController.logout();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,6 +78,12 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+          ),
+        ],
       ),
       body: Stack(
         children: [
