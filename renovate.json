@@ -1,0 +1,9 @@
+{
+	"extends": ["config:base"],
+	"packageRules": [
+	  {
+	    "managers": ["pub"],
+	    "enabled": true
+	  }
+	]
+   }

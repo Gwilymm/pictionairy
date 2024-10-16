@@ -1,0 +1,20 @@
+name: Renovate
+
+on:
+  schedule:
+    - cron: "*/5 * * * *" # Exécute toutes les 5 minutes pour tester
+
+jobs:
+  renovate:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+      - name: Install Renovate
+        run: npm install -g renovate
+      - name: Run Renovate
+        run: renovate
