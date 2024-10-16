@@ -28,7 +28,7 @@ class _StartGameScreenState extends State<StartGameScreen> {
     super.initState();
     _controller = StartGameController(widget.gameSession);
   }
-
+//test
   @override
   Widget build(BuildContext context) {
     return Scaffold(
