@@ -22,21 +22,34 @@ class _ChallengeCreateScreenState extends State<ChallengeCreateScreen> {
   }
 
   // Load challenges from SharedPreferences
-  Future<void> _loadChallenges() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? storedChallenges = prefs.getString('challenges');
-    if (storedChallenges != null) {
-      setState(() {
-        challenges = List<Map<String, dynamic>>.from(jsonDecode(storedChallenges));
-      });
-    }
+  // Load challenges from SharedPreferences (new structure)
+Future<void> _loadChallenges() async {
+  final prefs = await SharedPreferences.getInstance();
+  final String? storedChallenges = prefs.getString('challenges');
+  if (storedChallenges != null) {
+    setState(() {
+      challenges = List<Map<String, dynamic>>.from(
+        jsonDecode(storedChallenges).map((e) => {
+          'id': e['id'],
+          'details': e['details'],
+        }),
+      );
+    });
   }
+}
 
-  // Save challenges to SharedPreferences
-  Future<void> _saveChallenges() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('challenges', jsonEncode(challenges));
-  }
+// Save challenges to SharedPreferences (new structure)
+Future<void> _saveChallenges() async {
+  final prefs = await SharedPreferences.getInstance();
+  prefs.setString(
+    'challenges',
+    jsonEncode(challenges.map((challenge) => {
+          'id': challenge['id'],
+          'details': challenge['details'],
+        }).toList()),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
