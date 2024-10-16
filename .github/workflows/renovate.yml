@@ -22,4 +22,6 @@ jobs:
       - name: Run Renovate
         env:
           RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RENOVATE_AUTODISCOVER: "true"
         run: renovate https://github.com/Gwilymm/pictionairy
