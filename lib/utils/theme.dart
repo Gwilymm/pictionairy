@@ -1,7 +1,8 @@
 // lib/utils/theme.dart
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:floating_bubbles/floating_bubbles.dart'; // Import the floating_bubbles package
-import 'colors.dart'; // Importez le fichier de couleurs
+import 'package:floating_bubbles/floating_bubbles.dart';
+import 'colors.dart';
 
 class AppTheme {
   // Styles de texte communs
@@ -27,14 +28,16 @@ class AppTheme {
     color: AppColors.buttonTextColor,
   );
 
-  // Styles de bouton communs
   static final ButtonStyle elevatedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: AppColors.buttonColor,
+    // text color
+    foregroundColor: AppColors.buttonTextColor,
     padding: const EdgeInsets.symmetric(vertical: 12),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(12),
     ),
   );
+
 
   static final ButtonStyle outlinedButtonStyle = OutlinedButton.styleFrom(
     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
@@ -44,7 +47,6 @@ class AppTheme {
     ),
   );
 
-  // Thème général de l'application
   static ThemeData get theme {
     return ThemeData(
       primaryColor: AppColors.primaryColor,
@@ -53,10 +55,10 @@ class AppTheme {
         secondary: AppColors.accentColor,
       ),
       textTheme: const TextTheme(
-        displayLarge: titleTextStyle, // Updated from headline1
-        displayMedium: subtitleTextStyle, // Updated from headline2
-        bodyLarge: bodyTextStyle, // Updated from bodyText1
-        bodyMedium: bodyTextStyle, // Added for bodyText2
+        displayLarge: titleTextStyle,
+        displayMedium: subtitleTextStyle,
+        bodyLarge: bodyTextStyle,
+        bodyMedium: bodyTextStyle,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(style: elevatedButtonStyle),
       outlinedButtonTheme: OutlinedButtonThemeData(style: outlinedButtonStyle),
@@ -74,7 +76,7 @@ class AppTheme {
   }
 }
 
-// BubbleBackground class to use anywhere in the app
+// BubbleBackground class
 class BubbleBackground {
   static Widget buildBubbles({
     int noOfBubbles = 30,
@@ -84,20 +86,50 @@ class BubbleBackground {
     BubbleSpeed speed = BubbleSpeed.slow,
     PaintingStyle paintingStyle = PaintingStyle.fill,
     BubbleShape shape = BubbleShape.circle,
+    bool isInteractive = false, // Permet d'activer/désactiver l'interactivité
+    VoidCallback? onBubbleTapped, // Callback pour capturer les clics
   }) {
-    return FloatingBubbles.alwaysRepeating(
-      noOfBubbles: noOfBubbles,
-      colorsOfBubbles: colorsOfBubbles ?? [
-        Colors.white.withOpacity(0.1),
-        Colors.white.withOpacity(0.2),
-        Colors.white.withOpacity(0.3),
-        Colors.white.withOpacity(0.4),
+    return Stack(
+      children: [
+        // Fond statique ou coloré (optionnel)
+        Positioned.fill(
+          child: Container(
+            color: Colors.transparent, // Peut être remplacé par un dégradé
+          ),
+        ),
+        // Bulles animées avec FloatingBubbles
+        Positioned.fill(
+          child: FloatingBubbles.alwaysRepeating(
+            noOfBubbles: noOfBubbles,
+            colorsOfBubbles: colorsOfBubbles ?? [
+              Colors.green.withAlpha(30),
+              Colors.red,
+              Colors.blue.withOpacity(0.3),
+              Colors.yellow.withOpacity(0.3),
+            ],
+            sizeFactor: sizeFactor,
+            opacity: opacity,
+            paintingStyle: paintingStyle,
+            shape: shape,
+            speed: speed,
+          ),
+        ),
+        // Couche interactive (ajoutée si isInteractive est true)
+        if (isInteractive)
+          Positioned.fill(
+            child: GestureDetector(
+              onTapDown: (details) {
+                if (onBubbleTapped != null) {
+                  onBubbleTapped();
+                }
+                debugPrint('Bubble tapped at position: ${details}');
+              },
+              child: Container(
+                color: Colors.transparent, // Couvre l'écran pour capturer les clics
+              ),
+            ),
+          ),
       ],
-      sizeFactor: sizeFactor,
-      opacity: opacity,
-      speed: speed,
-      paintingStyle: paintingStyle,
-      shape: shape,
     );
   }
 }

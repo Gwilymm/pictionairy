@@ -35,21 +35,9 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
       ),
       body: Stack(
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryColor,
-                  AppColors.accentColor,
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: BubbleBackground.buildBubbles(),
-          ),
+          // Votre code pour le fond et les bulles
+          // ...
+
           Padding(
             padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).padding.top + kToolbarHeight, 16, 16),
             child: Form(
@@ -114,10 +102,10 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                       children: controller.forbiddenWords
                           .map(
                             (word) => Chip(
-                              label: Text(word),
-                              onDeleted: () => controller.removeForbiddenWord(word),
-                            ),
-                          )
+                          label: Text(word),
+                          onDeleted: () => controller.removeForbiddenWord(word),
+                        ),
+                      )
                           .toList(),
                     ),
                     const SizedBox(height: 20),
@@ -134,7 +122,7 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
                           };
 
                           List<Map<String, dynamic>> existingChallenges =
-                              await controller.loadChallenges();
+                          await controller.loadChallenges();
                           existingChallenges.add(challenge);
                           await controller.saveChallenges(existingChallenges);
 
@@ -170,9 +158,9 @@ class _ChallengeFormScreenState extends State<ChallengeFormScreen> {
         fillColor: Colors.purple,
         children: options
             .map((option) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(option),
-                ))
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(option),
+        ))
             .toList(),
         onPressed: onPressed,
       ),

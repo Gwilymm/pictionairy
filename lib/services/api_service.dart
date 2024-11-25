@@ -7,7 +7,8 @@ class ApiService {
   static const String baseUrl = 'https://pictioniary.wevox.cloud/api';
 
   // Method to register a new player
-  static Future<http.Response> createPlayer(String name, String password) async {
+  static Future<http.Response> createPlayer(
+      String name, String password) async {
     final url = Uri.parse('$baseUrl/players');
     final response = await http.post(
       url,
@@ -40,7 +41,7 @@ class ApiService {
 
   // Method to get player details by ID (Protected by JWT)
   static Future<http.Response> getPlayerDetails(String token) async {
-    final token = await _getToken();
+    final token = await getToken();
     debugPrint('Token: $token');
     if (token == null) return http.Response('Unauthorized', 401);
 
@@ -58,10 +59,11 @@ class ApiService {
   // Fetch the player's name using the player ID
   static Future<String> fetchPlayerName(int playerId) async {
     try {
-      final response = await getPlayerDetails(playerId);
+      final response = await getPlayerDetails(playerId.toString());
       if (response.statusCode == 200) {
         final playerData = jsonDecode(response.body);
-        return playerData['name'] ?? '<en attente>'; // Return the player's name, or a placeholder
+        return playerData['name'] ??
+            '<en attente>'; // Return the player's name, or a placeholder
       } else {
         return '<en attente>'; // Placeholder for failed requests
       }
@@ -73,7 +75,7 @@ class ApiService {
 
   // Method to create a game session (Protected by JWT)
   static Future<String?> createGameSession() async {
-    final token = await _getToken();
+    final token = await getToken();
     if (token == null) return null;
 
     final url = Uri.parse('$baseUrl/game_sessions');
@@ -95,7 +97,7 @@ class ApiService {
 
   // Method to get details of a game session by ID (Protected by JWT)
   static Future<http.Response> getGameSessionDetails(String sessionId) async {
-    final token = await _getToken();
+    final token = await getToken();
     if (token == null) return http.Response('Unauthorized', 401);
 
     final url = Uri.parse('$baseUrl/game_sessions/$sessionId');
@@ -110,8 +112,9 @@ class ApiService {
   }
 
   // Method to join a game session (Protected by JWT)
-  static Future<http.Response> joinGameSession(String sessionId, String teamColor) async {
-    final token = await _getToken();
+  static Future<http.Response> joinGameSession(
+      String sessionId, String teamColor) async {
+    final token = await getToken();
     if (token == null) return http.Response('Unauthorized', 401);
 
     final url = Uri.parse('$baseUrl/game_sessions/$sessionId/join');
@@ -125,6 +128,9 @@ class ApiService {
       body: jsonEncode({'color': teamColor}),
     );
     debugPrint('Join Response: ${response.body}');
+    // debugPrint the session details for debugging
+    final sessionDetails = await getGameSessionDetails(sessionId);
+    debugPrint('Session Details: ${sessionDetails.body}');
     return response;
   }
 
@@ -143,7 +149,7 @@ class ApiService {
 
   // Method to leave a game session (Protected by JWT)
   static Future<http.Response> leaveGameSession(String sessionId) async {
-    final token = await _getToken();
+    final token = await getToken();
     if (token == null) return http.Response('Unauthorized', 401);
 
     final url = Uri.parse('$baseUrl/game_sessions/$sessionId/leave');
@@ -158,7 +164,7 @@ class ApiService {
   }
 
   // Helper method to get JWT token from SharedPreferences
-  static Future<String?> _getToken() async {
+  static Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }

@@ -1,0 +1,26 @@
+meta {
+  name: Envoyer un challenge
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{Url}}/game_sessions/3/challenges
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MTAsIm5hbWUiOiJBbWFuZGluZTkifQ.GBQUT2ivTw9PZVrI6DE84sidU_4g9vQgBaNdIIlITQM
+}
+
+body:json {
+  {
+      "first_word" : "une",
+      "second_word" : "poule",
+      "third_word" : "sur",
+      "fourth_word" : "un",
+      "fifth_word" : "mur",
+      "forbidden_words" : ["volaille", "brique", "poulet"]
+  }
+}

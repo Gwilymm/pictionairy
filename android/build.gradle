@@ -1,7 +1,29 @@
+buildscript {
+    ext.kotlin_version = '1.9.20' // Updated Kotlin version
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // ...existing code...
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+}
+
+subprojects {
+    afterEvaluate {
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+            kotlinOptions {
+                freeCompilerArgs += ["-Xlint:deprecation"]
+            }
+        }
     }
 }
 

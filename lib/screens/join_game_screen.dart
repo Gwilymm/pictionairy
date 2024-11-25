@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:qr_code_dart_scan/qr_code_dart_scan.dart';
 import 'package:pictionairy/utils/theme.dart';
 import 'package:pictionairy/utils/colors.dart';
-import 'package:pictionairy/services/api_service.dart'; // Import your API service
+import 'package:pictionairy/controllers/join_game_controller.dart';
+import 'package:pictionairy/services/api_service.dart';
+import 'dart:convert';
 
 class JoinGameScreen extends StatefulWidget {
   const JoinGameScreen({super.key});
@@ -12,6 +14,10 @@ class JoinGameScreen extends StatefulWidget {
 }
 
 class _JoinGameScreenState extends State<JoinGameScreen> {
+  final JoinGameController _controller = JoinGameController();
+  bool _isScanning = true; // Flag to control scanning state
+  bool _isProcessing = false; // Flag for showing loading indicator
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,6 +30,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
       ),
       body: Stack(
         children: [
+          // Arrière-plan avec un dégradé
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -36,6 +43,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
               ),
             ),
           ),
+          // Fond animé avec des bulles
           Positioned.fill(
             child: BubbleBackground.buildBubbles(),
           ),
@@ -45,6 +53,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
+                  // Titre
                   Text(
                     'Placez le QR code dans la zone de scan',
                     style: Theme.of(context).textTheme.displayMedium?.copyWith(
@@ -53,21 +62,32 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
+                  // Zone de scan
                   AspectRatio(
                     aspectRatio: 1,
-                    child: QRCodeDartScanView(
+                    child: _isScanning
+                        ? QRCodeDartScanView(
                       onCapture: (data) {
                         _handleQRCodeScan(context, data);
                       },
-                    ),
+                    )
+                        : _isProcessing
+                        ? const SizedBox(
+                      height: 60,
+                      width: 60,
+                      child: CircularProgressIndicator(
+                        color: Colors.white, // Couleur contrastante
+                        strokeWidth: 4.0, // Épaisseur
+                      ),
+                    )
+                        : const SizedBox.shrink(), // Placeholder
                   ),
                   const SizedBox(height: 20),
+                  // Bouton Scan QR Code
                   SizedBox(
                     width: 200,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Additional functionality if needed
-                      },
+                      onPressed: _restartScan,
                       style: AppTheme.elevatedButtonStyle,
                       child: const Text(
                         'Scan QR Code',
@@ -85,95 +105,64 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
   }
 
   void _handleQRCodeScan(BuildContext context, dynamic data) async {
-    String? sessionId;
+    // Stop scanning and show loading indicator
+    setState(() {
+      _isScanning = false;
+      _isProcessing = true;
+    });
 
-    if (data is String) {
-      sessionId = data;
-    } else if (data is Result) {
-      sessionId = data.text;
-    }
+    String? sessionId = data is String
+        ? data
+        : data is Result
+        ? data.text
+        : null;
 
     if (sessionId != null) {
-      // After extracting sessionId, attempt to join the session
-      await _joinGameSession(context, sessionId);
+      try {
+        // Retrieve the current connected user and game session details
+        String connectedUser = await _getConnectedUser();
+        Map<String, dynamic> gameSession =
+        await _getGameSessionDetails(sessionId);
+
+        await _controller.joinGame(
+            context, sessionId, connectedUser, gameSession);
+      } catch (e) {
+        // Show error dialog and wait for it to be dismissed before restarting scan
+        await _controller.showErrorDialog(context, e.toString());
+        _restartScan();
+      } finally {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     } else {
-      _showErrorDialog(context, 'Invalid QR Code');
+      await _controller.showErrorDialog(context, 'Code QR invalide');
+      _restartScan(); // Restart scanning if the QR code is invalid
     }
   }
 
-  Future<void> _joinGameSession(BuildContext context, String sessionId) async {
-    // Show dialog to choose team color
-    final color = await _showColorChoiceDialog(context);
-    if (color == null) return; // User canceled the color selection
+  Future<String> _getConnectedUser() async {
+    // Logic to retrieve the current connected user
+    return 'connectedUser'; // Replace with actual logic
+  }
 
-    final response = await ApiService.joinGameSession(sessionId, color);
-
-    _showSuccessDialog(context, 'You have joined the session!');
+  Future<Map<String, dynamic>> _getGameSessionDetails(String sessionId) async {
+    // Logic to retrieve game session details from API
+    final response = await ApiService.getGameSessionDetails(sessionId);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to retrieve game session details');
     }
-
-  Future<String?> _showColorChoiceDialog(BuildContext context) {
-    return showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Choose a Team'),
-          content: const Text('Select a team to join:'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Blue'),
-              onPressed: () {
-                Navigator.of(context).pop('blue');
-              },
-            ),
-            TextButton(
-              child: const Text('Red'),
-              onPressed: () {
-                Navigator.of(context).pop('red');
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
-  void _showSuccessDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Success'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+  void _restartScan() {
+    // Delay the restart to prevent immediate rescanning
+    Future.delayed(const Duration(milliseconds: 500), () {
+      setState(() {
+        _isScanning = true;
+        _isProcessing = false;
+      });
+    });
   }
 }

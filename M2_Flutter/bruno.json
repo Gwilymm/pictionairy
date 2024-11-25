@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "M2_Flutter",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

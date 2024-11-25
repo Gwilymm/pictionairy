@@ -1,0 +1,15 @@
+meta {
+  name: Cr-er une session de jeu
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{Url}}/game_sessions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwibmFtZSI6IkFtYW5kaW5lIn0.W8iBlmtul0XQHWBSxEAH66KUj5XKQqjXj-dBiQYNygQ
+}

@@ -1,4 +1,3 @@
-// lib/utils/animated_bubble.dart
 import 'package:flutter/material.dart';
 
 class AnimatedBubble extends StatefulWidget {
@@ -6,60 +5,61 @@ class AnimatedBubble extends StatefulWidget {
   final double initialTop;
   final double left;
   final double opacity;
+  final VoidCallback onPopped;
+  final VoidCallback onAnimationEnd;
+  final bool isPoppable; // Indique si la bulle peut être éclatée
 
   const AnimatedBubble({
-    super.key,
+    Key? key,
     required this.size,
     required this.initialTop,
     required this.left,
     required this.opacity,
-  });
+    required this.onPopped,
+    required this.onAnimationEnd,
+    this.isPoppable = false, // Par défaut, non éclatable
+  }) : super(key: key);
 
   @override
   _AnimatedBubbleState createState() => _AnimatedBubbleState();
 }
 
-class _AnimatedBubbleState extends State<AnimatedBubble> with SingleTickerProviderStateMixin {
+class _AnimatedBubbleState extends State<AnimatedBubble> with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _positionAnimation;
   late Animation<double> _opacityAnimation;
-  late Animation<double> _sizeAnimation;
+  bool _isPopped = false;
 
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       duration: const Duration(seconds: 5),
       vsync: this,
-    )..repeat(reverse: false);
+    );
 
     _positionAnimation = Tween<double>(
       begin: widget.initialTop,
-      end: 0,
+      end: -100,
     ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOut,
+      curve: Curves.linear,
     ));
 
-    _opacityAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: widget.opacity, end: widget.opacity * 0.5), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: widget.opacity * 0.5, end: widget.opacity), weight: 1),
-    ]).animate(CurvedAnimation(
+    _opacityAnimation = Tween<double>(
+      begin: widget.opacity,
+      end: 0.0,
+    ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.easeInOut,
+      curve: Curves.easeOut,
     ));
 
-    _sizeAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: widget.size, end: widget.size * 1.2), weight: 1),
-      TweenSequenceItem(tween: Tween(begin: widget.size * 1.2, end: 0), weight: 1),
-    ]).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+    _controller.forward();
 
-    _controller.addListener(() {
-      if (_controller.isCompleted) {
-        _controller.repeat();
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed && !_isPopped) {
+        widget.onAnimationEnd();
       }
     });
   }
@@ -70,22 +70,38 @@ class _AnimatedBubbleState extends State<AnimatedBubble> with SingleTickerProvid
     super.dispose();
   }
 
+  void _onTap() {
+    if (!_isPopped && widget.isPoppable) {
+      setState(() {
+        _isPopped = true;
+      });
+
+      widget.onPopped();
+      widget.onAnimationEnd();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isPopped) return const SizedBox.shrink();
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return Positioned(
-          left: widget.left,
           top: _positionAnimation.value,
-          child: Opacity(
-            opacity: _opacityAnimation.value,
-            child: Container(
-              width: _sizeAnimation.value,
-              height: _sizeAnimation.value,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
+          left: widget.left,
+          child: GestureDetector(
+            onTap: _onTap,
+            child: Opacity(
+              opacity: _opacityAnimation.value,
+              child: Container(
+                width: widget.size,
+                height: widget.size,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),

@@ -1,0 +1,21 @@
+meta {
+  name: Rejoindre une session de jeu
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{Url}}/game_sessions/3/join
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6NCwibmFtZSI6IkFtYW5kaW5lMyJ9.zAJu8XaqvxdzUt-YqGqgBzB6QaPeAc3G9inTDjXWAOI
+}
+
+body:json {
+  {
+      "color":"red"
+  }
+}

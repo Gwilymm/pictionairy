@@ -1,0 +1,15 @@
+meta {
+  name: R-cup-rer le statut d-une session
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{Url}}/game_sessions/3/status
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MTAsIm5hbWUiOiJBbWFuZGluZSJ9.Rh7psY5manOCnWqvcdOV6o8EWohCzwVME7z2KFFjPfU
+}

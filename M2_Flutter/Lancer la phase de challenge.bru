@@ -1,0 +1,15 @@
+meta {
+  name: Lancer la phase de challenge
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{Url}}/game_sessions/3/start
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwibmFtZSI6IkFtYW5kaW5lIn0.W8iBlmtul0XQHWBSxEAH66KUj5XKQqjXj-dBiQYNygQ
+}

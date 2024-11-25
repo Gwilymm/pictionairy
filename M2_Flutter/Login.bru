@@ -1,0 +1,22 @@
+meta {
+  name: Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{Url}}/api/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "name":"moi",
+      "password":"azerty"
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("Bearer","Bearer "+ res.body.token);
+}
