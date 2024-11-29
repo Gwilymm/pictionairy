@@ -2,7 +2,7 @@ name: Renovate
 
 on:
   schedule:
-    - cron: "15 0 * * *" # Runs every 5 minutes (for testing); you should adjust this for production
+    - cron: "15 * * * 1" # Runs every 5 minutes (for testing); you should adjust this for production
   push:
     branches:
       - main
