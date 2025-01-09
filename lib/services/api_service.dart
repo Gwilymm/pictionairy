@@ -163,6 +163,60 @@ class ApiService {
     return response;
   }
 
+  // Method to generate an image for a challenge
+  static Future<String?> generateImage(String gameSessionId, String challengeId) async {
+    final token = await getToken();
+    if (token == null) return null;
+
+    final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId/challenges/$challengeId/draw');
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['imageUrl'];
+    } else {
+      return null;
+    }
+  }
+
+  // Method to send challenges to the game session
+  static Future<List<String>> sendChallenges(String gameSessionId, Map<String, dynamic> challenge) async {
+    final token = await getToken();
+    if (token == null) {
+      debugPrint('No token found');
+      return [];
+    }
+
+    final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId/challenges');
+    debugPrint('Sending challenge to $url');
+    debugPrint('Challenge: ${jsonEncode(challenge)}');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(challenge),
+    );
+
+    debugPrint('Response status: ${response.statusCode}');
+    debugPrint('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as List;
+      return data.map((challenge) => challenge['id'].toString()).toList();
+    } else {
+      debugPrint('Failed to send challenge: ${response.statusCode}');
+      return [];
+    }
+  }
+
   // Helper method to get JWT token from SharedPreferences
   static Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

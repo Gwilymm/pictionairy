@@ -8,6 +8,7 @@ import 'package:pictionairy/utils/theme.dart';
 import 'package:glass_kit/glass_kit.dart';
 import 'dart:async'; // Add this line
 import 'package:google_mobile_ads/google_mobile_ads.dart'; // Add this line
+import 'package:pictionairy/screens/challenge_create_screen.dart'; // Add this line
 
 class StartGameScreen extends StatefulWidget {
   final String connectedUser;
@@ -60,8 +61,6 @@ class _StartGameScreenState extends State<StartGameScreen> {
       }
     });
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -200,8 +199,15 @@ class _StartGameScreenState extends State<StartGameScreen> {
                         ElevatedButton.icon(
                           onPressed: () async {
                             try {
-                              await _controller.addPlayerToTeam(widget.sessionId);
                               setState(() {}); // Actualiser l'interface utilisateur
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ChallengeCreateScreen(
+                                    gameSessionId: widget.sessionId, // Pass the gameSessionId as a named argument
+                                  ),
+                                ),
+                              );
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text(e.toString())),

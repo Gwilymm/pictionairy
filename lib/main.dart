@@ -5,6 +5,7 @@ import 'utils/theme.dart'; // Importez le fichier de thème
 import 'screens/home_screen.dart'; // Import the HomeScreen
 import 'screens/login_screen.dart'; // Import the LoginScreen
 import 'controllers/login_controller.dart'; // Import the LoginController
+import 'controllers/challenge_form_controller.dart'; // Import the ChallengeFormController
 import 'package:provider/provider.dart';
 import 'dart:io';
 
@@ -73,27 +74,33 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Pictionairy',
-      theme: ThemeData.light(), // Ajoutez votre thème personnalisé ici
-      initialRoute: '/',
-      routes: {
-        '/': (_) => const SplashScreen(),
-        '/home': (_) => const HomeScreen(),
-        '/login': (_) => const LoginScreen(),
-      },
-      builder: (context, child) {
-        return Scaffold(
-          body: child,
-          bottomNavigationBar: _isLoaded
-              ? Container(
-            color: Colors.transparent,
-            child: AdWidget(ad: _bannerAd!),
-            height: _bannerAd!.size.height.toDouble(),
-          )
-              : const SizedBox.shrink(),
-        );
-      },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ChallengeFormController()),
+        // Add other providers here if needed
+      ],
+      child: MaterialApp(
+        title: 'Pictionairy',
+        theme: ThemeData.light(), // Ajoutez votre thème personnalisé ici
+        initialRoute: '/',
+        routes: {
+          '/': (_) => const SplashScreen(),
+          '/home': (_) => const HomeScreen(),
+          '/login': (_) => const LoginScreen(),
+        },
+        builder: (context, child) {
+          return Scaffold(
+            body: child,
+            bottomNavigationBar: _isLoaded
+                ? Container(
+              color: Colors.transparent,
+              child: AdWidget(ad: _bannerAd!),
+              height: _bannerAd!.size.height.toDouble(),
+            )
+                : const SizedBox.shrink(),
+          );
+        },
+      ),
     );
   }
 
