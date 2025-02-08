@@ -124,17 +124,17 @@ class _StartGameScreenState extends State<StartGameScreen> {
             ElevatedButton.icon(
               onPressed: hasMinPlayers
                   ? () async {
-                      debugPrint("Button pressed");
+                      debugPrint("Button pressed by game starter");
+                      // Only game starter updates the status
                       if (_isGameStarter) {
                         await ApiService.updateGameStatus(widget.sessionId, 'challenge_creation');
                       }
-                      // Navigate everyone to challenge creation
+                      // All players navigate to challenge creation
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ChallengeCreateScreen(
                             gameSessionId: widget.sessionId,
-                            isGameStarter: _isGameStarter,
                           ),
                         ),
                       );
