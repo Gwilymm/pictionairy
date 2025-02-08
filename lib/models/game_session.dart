@@ -1,29 +1,29 @@
 class GameSession {
-  final String sessionId;
+  final String id;
+  final int gameStarterId;
   final List<String> redTeamPlayers;
   final List<String> blueTeamPlayers;
 
   GameSession({
-    required this.sessionId,
-    required this.redTeamPlayers,
-    required this.blueTeamPlayers,
+    required this.id,
+    required this.gameStarterId,
+    this.redTeamPlayers = const [],
+    this.blueTeamPlayers = const [],
   });
 
-  // Factory method to create a GameSession instance from JSON
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'gameStarterId': gameStarterId,
+    'redTeamPlayers': redTeamPlayers,
+    'blueTeamPlayers': blueTeamPlayers,
+  };
+
   factory GameSession.fromJson(Map<String, dynamic> json) {
     return GameSession(
-      sessionId: json['session_id'] as String,
-      redTeamPlayers: List<String>.from(json['red_team_players']),
-      blueTeamPlayers: List<String>.from(json['blue_team_players']),
+      id: json['id'].toString(),
+      gameStarterId: json['gameStarterId'],
+      redTeamPlayers: List<String>.from(json['redTeamPlayers'] ?? []),
+      blueTeamPlayers: List<String>.from(json['blueTeamPlayers'] ?? []),
     );
-  }
-
-  // Method to convert GameSession instance to JSON (if needed for serialization)
-  Map<String, dynamic> toJson() {
-    return {
-      'session_id': sessionId,
-      'red_team_players': redTeamPlayers,
-      'blue_team_players': blueTeamPlayers,
-    };
   }
 }

@@ -6,9 +6,11 @@ import 'package:pictionairy/controllers/start_game_controller.dart';
 import 'package:pictionairy/utils/colors.dart';
 import 'package:pictionairy/utils/theme.dart';
 import 'package:glass_kit/glass_kit.dart';
-import 'dart:async'; // Add this line
-import 'package:google_mobile_ads/google_mobile_ads.dart'; // Add this line
-import 'package:pictionairy/screens/challenge_create_screen.dart'; // Add this line
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:pictionairy/screens/challenge_create_screen.dart';
+import 'dart:convert';
+import 'package:pictionairy/services/api_service.dart';
+import 'dart:async';
 
 class StartGameScreen extends StatefulWidget {
   final String connectedUser;
@@ -32,6 +34,31 @@ class _StartGameScreenState extends State<StartGameScreen> {
       _teamsStreamController; // Add this line
   BannerAd? _bannerAd; // Add this line
 
+  bool get _isGameStarter {
+    try {
+      final connectedUserData = jsonDecode(widget.connectedUser);
+      final int connectedUserId = connectedUserData['id'];
+      final int? gameStarterId = widget.gameSession['gameStarterId'] as int?;
+      
+      debugPrint("Connected user ID: $connectedUserId"); // Debug log
+      debugPrint("Game starter ID: $gameStarterId"); // Debug log
+      debugPrint("Full game session: ${widget.gameSession}"); // Debug log
+      
+      if (gameStarterId == null) {
+        debugPrint("Game starter ID is null!"); // Debug log
+        return false;
+      }
+      
+      return connectedUserId == gameStarterId;
+    } catch (e, stackTrace) {
+      debugPrint("Error comparing IDs: $e");
+      debugPrint("Stack trace: $stackTrace");
+      debugPrint("Connected user raw: ${widget.connectedUser}");
+      debugPrint("Game session raw: ${widget.gameSession}");
+      return false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -39,7 +66,7 @@ class _StartGameScreenState extends State<StartGameScreen> {
     _teamsStreamController =
         StreamController<List<List<String>>>(); // Add this line
     _startAutoRefresh(); // Add this line
-     // Add this line
+    _loadTeams();
   }
 
   @override
@@ -50,16 +77,99 @@ class _StartGameScreenState extends State<StartGameScreen> {
   }
 
   void _startAutoRefresh() {
-    Timer.periodic(const Duration(seconds: 5), (timer) async {
+    Timer.periodic(const Duration(seconds: 3), (timer) async {
       if (!mounted) {
         timer.cancel();
         return;
       }
+      
+      try {
+        final teams = await _controller.getTeams();
+        debugPrint("Teams refreshed: $teams"); // Debug log
+        if (mounted) {
+          _teamsStreamController.add(teams);
+        }
+      } catch (e) {
+        debugPrint('Error refreshing teams: $e');
+      }
+    });
+  }
+
+  Future<void> _loadTeams() async {
+    try {
       final teams = await _controller.getTeams();
       if (mounted) {
         _teamsStreamController.add(teams);
       }
-    });
+    } catch (e) {
+      debugPrint('Error loading initial teams: $e');
+    }
+  }
+
+  Widget _buildStartGameButton(List<List<String>>? teams) {
+    return FutureBuilder<bool>(
+      future: _controller.hasMinimumPlayers(),
+      builder: (context, hasMinPlayersSnapshot) {
+        final bool hasMinPlayers = hasMinPlayersSnapshot.data ?? false;
+        final bool canStart = _isGameStarter && hasMinPlayers;
+
+        final String buttonText = _isGameStarter
+            ? hasMinPlayers
+                ? 'Commencer la partie'
+                : 'En attente de joueurs (min. 2)'
+            : 'En attente du créateur';
+
+        return Column(
+          children: [
+            ElevatedButton.icon(
+              onPressed: hasMinPlayers
+                  ? () async {
+                      debugPrint("Button pressed");
+                      if (_isGameStarter) {
+                        await ApiService.updateGameStatus(widget.sessionId, 'challenge_creation');
+                      }
+                      // Navigate everyone to challenge creation
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChallengeCreateScreen(
+                            gameSessionId: widget.sessionId,
+                            isGameStarter: _isGameStarter,
+                          ),
+                        ),
+                      );
+                    }
+                  : null,
+              icon: const Icon(Icons.play_arrow),
+              label: Text(buttonText),
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    canStart ? AppColors.accentColor : Colors.grey,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+            if (!_isGameStarter)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'Seul le créateur de la partie peut la démarrer',
+                  style: TextStyle(
+                    color: AppColors.secondaryColor.withOpacity(0.8),
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -97,9 +207,7 @@ class _StartGameScreenState extends State<StartGameScreen> {
               ),
             ),
             // Fond animé avec les bulles
-            Positioned.fill(
-              child: BubbleBackground.buildBubbles(),
-            ),
+            
             // Contenu principal enveloppé dans un SafeArea
             SafeArea(
               child: Padding(
@@ -195,39 +303,18 @@ class _StartGameScreenState extends State<StartGameScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        // Bouton "Commencer"
-                        ElevatedButton.icon(
-                          onPressed: () async {
-                            try {
-                              setState(() {}); // Actualiser l'interface utilisateur
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ChallengeCreateScreen(
-                                    gameSessionId: widget.sessionId, // Pass the gameSessionId as a named argument
-                                  ),
-                                ),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
-                              );
-                            }
-                          },
-                          icon: const Icon(Icons.play_arrow),
-                          label: const Text('Commencer'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.accentColor,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        _buildStartGameButton(snapshot.data),
+                        if (!_isGameStarter)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              'Seul le créateur de la partie peut la démarrer',
+                              style: TextStyle(
+                                color: AppColors.secondaryColor.withOpacity(0.8),
+                                fontSize: 14,
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     );
                   },
@@ -282,10 +369,6 @@ class _StartGameScreenState extends State<StartGameScreen> {
     );
   }
 
-
-
-
-
   Widget _buildTeamCard(
       String teamName, List<String> teamMembers, Color color,
       {double maxHeight = 140}) {
@@ -318,18 +401,19 @@ class _StartGameScreenState extends State<StartGameScreen> {
                 child: ListView.builder(
                   itemCount: teamMembers.length,
                   itemBuilder: (context, index) {
+                    final playerName = teamMembers[index];
                     return ListTile(
                       leading: CircleAvatar(
                         backgroundColor: color.withOpacity(0.7),
                         child: Text(
-                          teamMembers[index][0].toUpperCase(),
+                          playerName.isNotEmpty ? playerName[0].toUpperCase() : '?',
                           style: const TextStyle(
                             color: AppColors.secondaryColor,
                           ),
                         ),
                       ),
                       title: Text(
-                        teamMembers[index],
+                        playerName,
                         style: const TextStyle(
                           color: AppColors.secondaryColor,
                         ),
@@ -344,8 +428,6 @@ class _StartGameScreenState extends State<StartGameScreen> {
       ),
     );
   }
-
-
 
   void _showQRCodeModal(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;

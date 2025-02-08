@@ -5,8 +5,14 @@ import 'package:pictionairy/services/api_service.dart';
 class StartGameController with ChangeNotifier {
   final Map<String, dynamic> gameSession;
   static const int maxPlayersPerTeam = 2;
+  static const int minPlayers = 2;
+  final Map<String, String> _playerNamesCache = {};
 
   StartGameController(this.gameSession);
+
+  bool canStartGame(String userId) {
+    return gameSession['gameStarterId'] == userId;
+  }
 
   Future<String> _fetchPlayerNameSafely(int? playerId) async {
     if (playerId == null) {
@@ -35,17 +41,41 @@ class StartGameController with ChangeNotifier {
   }
 
   Future<List<List<String>>> getTeams() async {
-    // Fetch the latest game session details
-    final updatedGameSession = await _getUpdatedGameSession();
-    final redTeam = await Future.wait([
-      _fetchPlayerNameSafely(updatedGameSession['red_player_1']),
-      _fetchPlayerNameSafely(updatedGameSession['red_player_2']),
-    ]);
-    final blueTeam = await Future.wait([
-      _fetchPlayerNameSafely(updatedGameSession['blue_player_1']),
-      _fetchPlayerNameSafely(updatedGameSession['blue_player_2']),
-    ]);
-    return [redTeam, blueTeam];
+    try {
+      final sessionDetails = await ApiService.getGameSessionDetails(gameSession['id'].toString());
+      debugPrint("Session details response: ${sessionDetails.body}"); // Debug log
+      
+      if (sessionDetails.statusCode != 200) {
+        debugPrint("Failed to get session details: ${sessionDetails.statusCode}");
+        return [[], []];
+      }
+
+      final data = jsonDecode(sessionDetails.body);
+      
+      // Extract player IDs from the response
+      final List<dynamic> redTeamIds = data['red_team'] ?? [];
+      final List<dynamic> blueTeamIds = data['blue_team'] ?? [];
+      
+      debugPrint("Red team IDs before conversion: $redTeamIds"); // Debug log
+      debugPrint("Blue team IDs before conversion: $blueTeamIds"); // Debug log
+
+      // Convert IDs to integers and fetch names
+      final redTeamNames = await Future.wait(
+        redTeamIds.map((id) => ApiService.fetchPlayerName(int.parse(id.toString())))
+      );
+      final blueTeamNames = await Future.wait(
+        blueTeamIds.map((id) => ApiService.fetchPlayerName(int.parse(id.toString())))
+      );
+
+      debugPrint("Red team names: $redTeamNames"); // Debug log
+      debugPrint("Blue team names: $blueTeamNames"); // Debug log
+
+      return [redTeamNames, blueTeamNames];
+    } catch (e, stackTrace) {
+      debugPrint('Error getting teams: $e');
+      debugPrint('Stack trace: $stackTrace');
+      return [[], []];
+    }
   }
 
   Future<Map<String, dynamic>> _getUpdatedGameSession() async {
@@ -91,5 +121,31 @@ class StartGameController with ChangeNotifier {
     } else {
       throw Exception('Both teams are full');
     }
+  }
+
+  Future<bool> hasMinimumPlayers() async {
+    try {
+      final teams = await getTeams();
+      final totalPlayers = teams[0].length + teams[1].length;
+      debugPrint('Total players: $totalPlayers'); // Debug log
+      return totalPlayers >= minPlayers;
+    } catch (e) {
+      debugPrint('Error checking minimum players: $e');
+      return false;
+    }
+  }
+
+  Future<List<String>> _fetchPlayerNames(List<String> playerIds) async {
+    List<String> names = [];
+    for (String id in playerIds) {
+      if (_playerNamesCache.containsKey(id)) {
+        names.add(_playerNamesCache[id]!);
+      } else {
+        final name = await ApiService.fetchPlayerName(int.parse(id));
+        _playerNamesCache[id] = name;
+        names.add(name);
+      }
+    }
+    return names;
   }
 }

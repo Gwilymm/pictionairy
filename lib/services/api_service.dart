@@ -59,17 +59,26 @@ class ApiService {
   // Fetch the player's name using the player ID
   static Future<String> fetchPlayerName(int playerId) async {
     try {
-      final response = await getPlayerDetails(playerId.toString());
+      final token = await getToken();
+      if (token == null) return '<en attente>';
+
+      final url = Uri.parse('$baseUrl/players/$playerId');
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
       if (response.statusCode == 200) {
         final playerData = jsonDecode(response.body);
-        return playerData['name'] ??
-            '<en attente>'; // Return the player's name, or a placeholder
-      } else {
-        return '<en attente>'; // Placeholder for failed requests
+        return playerData['name'] ?? '<en attente>';
       }
+      return '<en attente>';
     } catch (e) {
-      print('Error fetching player name for $playerId: $e');
-      return '<en attente>'; // Return a placeholder in case of an exception
+      debugPrint('Error fetching player name: $e');
+      return '<en attente>';
     }
   }
 
@@ -214,6 +223,29 @@ class ApiService {
     } else {
       debugPrint('Failed to send challenge: ${response.statusCode}');
       return [];
+    }
+  }
+
+  static Future<bool> updateGameStatus(String sessionId, String status) async {
+    try {
+      final token = await getToken();
+      if (token == null) return false;
+
+      final url = Uri.parse('$baseUrl/game_sessions/$sessionId/status');
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'status': status}),
+      );
+
+      debugPrint("Update status response: ${response.statusCode}");
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("Error updating game status: $e");
+      return false;
     }
   }
 
