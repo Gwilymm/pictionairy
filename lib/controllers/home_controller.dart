@@ -27,28 +27,24 @@ class HomeController {
         return null;
       }
 
-      // Step 2: Randomly assign a team color
-      final List<String> teamColors = ['red', 'blue'];
-      final String randomTeam = teamColors[Random().nextInt(2)];
-
-      // Step 3: Join the game session
-      final joinResponse = await ApiService.joinGameSession(sessionId, randomTeam);
+      // Step 2: Join as game starter
+      final joinResponse = await ApiService.joinGameSession(sessionId, 'red');
       if (joinResponse.statusCode != 200) {
         return null;
       }
 
-      // Create a local game session object with the starter ID
+      // Create game session object with all players
       final gameSession = GameSession(
         id: sessionId,
         gameStarterId: userId,
-        redTeamPlayers: randomTeam == 'red' ? [userMap['name']] : [],
-        blueTeamPlayers: randomTeam == 'blue' ? [userMap['name']] : [],
+        redTeamPlayers: [userMap['name']], // Game starter is always in red team
+        blueTeamPlayers: [],
       );
 
       // Return game session details as JSON string
       return jsonEncode(gameSession.toJson());
     } catch (e) {
-      debugPrint('Error creating or joining session: $e');
+      debugPrint('Error in createAndJoinGameSession: $e');
       return null;
     }
   }
