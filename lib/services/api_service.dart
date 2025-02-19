@@ -122,11 +122,22 @@ class ApiService {
 
   // Method to join a game session (Protected by JWT)
   static Future<http.Response> joinGameSession(
-      String sessionId, String teamColor) async {
+    String sessionId,
+    String teamColor, {
+    int? playerId,  // Add optional playerId parameter
+  }) async {
     final token = await getToken();
     if (token == null) return http.Response('Unauthorized', 401);
 
     final url = Uri.parse('$baseUrl/game_sessions/$sessionId/join');
+    final Map<String, dynamic> body = {
+      'color': teamColor,
+    };
+
+    // Add playerId to body if provided
+    if (playerId != null) {
+      body['playerId'] = playerId;
+    }
 
     final response = await http.post(
       url,
@@ -134,12 +145,10 @@ class ApiService {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'color': teamColor}),
+      body: jsonEncode(body),
     );
-    debugPrint('Join Response: ${response.body}');
-    // debugPrint the session details for debugging
-    final sessionDetails = await getGameSessionDetails(sessionId);
-    debugPrint('Session Details: ${sessionDetails.body}');
+    
+    debugPrint('Join Response for player $playerId: ${response.body}');
     return response;
   }
 
@@ -157,17 +166,24 @@ class ApiService {
   }
 
   // Method to leave a game session (Protected by JWT)
-  static Future<http.Response> leaveGameSession(String sessionId) async {
+  static Future<http.Response> leaveGameSession(String sessionId, {int? playerId}) async {
     final token = await getToken();
     if (token == null) return http.Response('Unauthorized', 401);
 
     final url = Uri.parse('$baseUrl/game_sessions/$sessionId/leave');
-    final response = await http.get(
+    final Map<String, dynamic> body = {};
+    
+    if (playerId != null) {
+      body['playerId'] = playerId;
+    }
+
+    final response = await http.post(  // Changed from get to post
       url,
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
+      body: jsonEncode(body),
     );
     return response;
   }
@@ -194,64 +210,94 @@ class ApiService {
   }
 
   // Method to send challenges to the game session
-  static Future<List<String>> sendChallenges(String gameSessionId, Map<String, dynamic> challenge) async {
-    final token = await getToken();
-    if (token == null) {
-      debugPrint('No token found');
-      return [];
+  /// Sends a challenge to the specified game session.
+  ///
+  /// This function sends a POST request to the server with the provided
+  /// [gameSessionId] and [challenge] data. It includes an authorization token
+  /// in the request headers.
+  ///
+  /// If the token is not found, it logs a message and returns an empty list.
+  ///
+  /// The function logs the URL, challenge data, response status, and response
+  /// body for debugging purposes.
+  ///
+  /// If the request is successful (status code 200), it returns a list of
+  /// challenge IDs extracted from the response body. Otherwise, it logs an
+  /// error message and returns an empty list.
+  ///
+  /// Parameters:
+  /// - [gameSessionId]: The ID of the game session to which the challenge is
+  ///   being sent.
+  /// - [challenge]: A map containing the challenge data to be sent.
+  ///
+  /// Returns:
+  /// A [Future] that resolves to a list of challenge IDs if the request is
+  /// successful, or an empty list if the request fails or the token is not
+  /// found.
+      return;
     }
 
-    final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId/challenges');
-    debugPrint('Sending challenge to $url');
-    debugPrint('Challenge: ${jsonEncode(challenge)}');
+    final sessionData = jsonDecode(sessionResponse.body);
+    var redTeam = List<dynamic>.from(sessionData['red_team'] ?? []);
+    var blueTeam = List<dynamic>.from(sessionData['blue_team'] ?? []);
 
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(challenge),
-    );
+    debugPrint('Current red team size: ${redTeam.length}');
+    debugPrint('Current blue team size: ${blueTeam.length}');
 
-    debugPrint('Response status: ${response.statusCode}');
-    debugPrint('Response body: ${response.body}');
+    // Add test players
+    for (var player in players) {
+      try {
+        final token = await login(player['username']!, player['password']!);
+        if (token == null) {
+          debugPrint('Failed to login ${player['username']}');
+          continue;
+        }
+        
+        String teamColor = redTeam.length < 2 ? 'red' : 'blue';
+        final response = await http.post(
+          Uri.parse('$baseUrl/game_sessions/$sessionId/join'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({'color': teamColor}),
+        );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as List;
-      return data.map((challenge) => challenge['id'].toString()).toList();
-    } else {
-      debugPrint('Failed to send challenge: ${response.statusCode}');
-      return [];
+        if (response.statusCode == 200) {
+          debugPrint('Added ${player['username']} to $teamColor team');
+          if (teamColor == 'red') redTeam.add(1);
+          else blueTeam.add(1);
+        }
+        
+        await Future.delayed(const Duration(milliseconds: 200));
+      } catch (e) {
+        debugPrint('Error adding ${player['username']}: $e');
+      }
     }
-  }
 
-  static Future<bool> updateGameStatus(String sessionId, String status) async {
+    // Reconnect original user
     try {
-      final token = await getToken();
-      if (token == null) return false;
-
-      final url = Uri.parse('$baseUrl/game_sessions/$sessionId/status');
-      final response = await http.post(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({'status': status}),
-      );
-
-      debugPrint("Update status response: ${response.statusCode}");
-      return response.statusCode == 200;
+      final originalToken = await login('gwilym', 'azerty');
+      if (originalToken != null) {
+        debugPrint('Successfully reconnected original user (gwilym)');
+        // Store the token in SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', originalToken);
+      } else {
+        debugPrint('Failed to reconnect original user');
+      }
     } catch (e) {
-      debugPrint("Error updating game status: $e");
-      return false;
+      debugPrint('Error reconnecting original user: $e');
     }
+
+    // Verify final state
+    final finalSessionDetails = await getGameSessionDetails(sessionId);
+    debugPrint('Final session state: ${finalSessionDetails.body}');
   }
 
-  // Helper method to get JWT token from SharedPreferences
   static Future<String?> getToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 }
+

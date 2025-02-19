@@ -67,6 +67,20 @@ class _StartGameScreenState extends State<StartGameScreen> {
         StreamController<List<List<String>>>(); // Add this line
     _startAutoRefresh(); // Add this line
     _loadTeams();
+
+    // Add test players if current user is game starter
+    if (_isGameStarter) {
+      debugPrint('Game starter detected, adding test players...');
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        try {
+          await ApiService.addTestPlayers(widget.sessionId);
+          debugPrint('Test players added successfully');
+          await _loadTeams(); // Reload teams after adding players
+        } catch (e) {
+          debugPrint('Error adding test players: $e');
+        }
+      });
+    }
   }
 
   @override
