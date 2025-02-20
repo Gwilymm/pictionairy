@@ -92,13 +92,16 @@ retrieval of user details are successful, otherwise returns <code>false</code>.<
 
   &#47;&#47; Step 1: Login to get the token
   final token = await ApiService.login(username, password);
+  &#47;&#47; store token in shared preferences
 
   if (token != null) {
+    await SharedPreferencesUtil.setToken(token);
     &#47;&#47; Step 2: Retrieve user details after successful login
-    final response = await ApiService.getPlayerDetails(username);
+    final response = await ApiService.getPlayerDetails(token);
+    debugPrint(&#39;Response: ${response.body}&#39;);
     if (response.statusCode == 200) {
       final userDetails = jsonDecode(response.body);
-
+      debugPrint(&#39;User Details: $userDetails&#39;);
       &#47;&#47; Save user details to SharedPreferences
       await SharedPreferencesUtil.setConnectedUser(json.encode(userDetails));
       return true;

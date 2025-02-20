@@ -65,6 +65,8 @@
 <li><span class="parameter" id="buildBubbles-param-speed"><span class="type-annotation"><a href="https://pub.dev/documentation/floating_bubbles/2.6.2/floating_bubbles/BubbleSpeed.html">BubbleSpeed</a></span> <span class="parameter-name">speed</span> = <span class="default-value">BubbleSpeed.slow</span>, </span></li>
 <li><span class="parameter" id="buildBubbles-param-paintingStyle"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/painting/PaintingStyle.html">PaintingStyle</a></span> <span class="parameter-name">paintingStyle</span> = <span class="default-value">PaintingStyle.fill</span>, </span></li>
 <li><span class="parameter" id="buildBubbles-param-shape"><span class="type-annotation"><a href="https://pub.dev/documentation/floating_bubbles/2.6.2/floating_bubbles/BubbleShape.html">BubbleShape</a></span> <span class="parameter-name">shape</span> = <span class="default-value">BubbleShape.circle</span>, </span></li>
+<li><span class="parameter" id="buildBubbles-param-isInteractive"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">isInteractive</span> = <span class="default-value">false</span>, </span></li>
+<li><span class="parameter" id="buildBubbles-param-onBubbleTapped"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-ui/VoidCallback.html">VoidCallback</a>?</span> <span class="parameter-name">onBubbleTapped</span>, </span></li>
 </ol>})
 
       
@@ -84,20 +86,50 @@
   BubbleSpeed speed = BubbleSpeed.slow,
   PaintingStyle paintingStyle = PaintingStyle.fill,
   BubbleShape shape = BubbleShape.circle,
+  bool isInteractive = false, &#47;&#47; Permet d&#39;activer&#47;désactiver l&#39;interactivité
+  VoidCallback? onBubbleTapped, &#47;&#47; Callback pour capturer les clics
 }) {
-  return FloatingBubbles.alwaysRepeating(
-    noOfBubbles: noOfBubbles,
-    colorsOfBubbles: colorsOfBubbles ?? [
-      Colors.white.withOpacity(0.1),
-      Colors.white.withOpacity(0.2),
-      Colors.white.withOpacity(0.3),
-      Colors.white.withOpacity(0.4),
+  return Stack(
+    children: [
+      &#47;&#47; Fond statique ou coloré (optionnel)
+      Positioned.fill(
+        child: Container(
+          color: Colors.transparent, &#47;&#47; Peut être remplacé par un dégradé
+        ),
+      ),
+      &#47;&#47; Bulles animées avec FloatingBubbles
+      Positioned.fill(
+        child: FloatingBubbles.alwaysRepeating(
+          noOfBubbles: noOfBubbles,
+          colorsOfBubbles: colorsOfBubbles ?? [
+            Colors.green.withAlpha(30),
+            Colors.red,
+            Colors.blue.withOpacity(0.3),
+            Colors.yellow.withOpacity(0.3),
+          ],
+          sizeFactor: sizeFactor,
+          opacity: opacity,
+          paintingStyle: paintingStyle,
+          shape: shape,
+          speed: speed,
+        ),
+      ),
+      &#47;&#47; Couche interactive (ajoutée si isInteractive est true)
+      if (isInteractive)
+        Positioned.fill(
+          child: GestureDetector(
+            onTapDown: (details) {
+              if (onBubbleTapped != null) {
+                onBubbleTapped();
+              }
+              debugPrint(&#39;Bubble tapped at position: ${details}&#39;);
+            },
+            child: Container(
+              color: Colors.transparent, &#47;&#47; Couvre l&#39;écran pour capturer les clics
+            ),
+          ),
+        ),
     ],
-    sizeFactor: sizeFactor,
-    opacity: opacity,
-    speed: speed,
-    paintingStyle: paintingStyle,
-    shape: shape,
   );
 }</code></pre>
 </section>

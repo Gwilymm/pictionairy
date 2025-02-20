@@ -70,11 +70,11 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">const StartGameScreen({
-  super.key,
+  Key? key,
   required this.connectedUser,
   required this.sessionId,
   required this.gameSession,
-});</code></pre>
+}) : super(key: key);</code></pre>
 </section>
 
 

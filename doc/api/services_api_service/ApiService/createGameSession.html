@@ -70,7 +70,7 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">static Future&lt;String?&gt; createGameSession() async {
-  final token = await _getToken();
+  final token = await getToken();
   if (token == null) return null;
 
   final url = Uri.parse(&#39;$baseUrl&#47;game_sessions&#39;);
