@@ -138,20 +138,32 @@ class _StartGameScreenState extends State<StartGameScreen> {
             ElevatedButton.icon(
               onPressed: hasMinPlayers
                   ? () async {
-                      debugPrint("Button pressed by game starter");
-                      // Only game starter updates the status
+                      debugPrint("Game starter initiating game start...");
                       if (_isGameStarter) {
-                        await ApiService.updateGameStatus(widget.sessionId, 'challenge_creation');
+                        // Start the game first
+                        final startResponse = await ApiService.startGame(widget.sessionId);
+                        if (startResponse == null) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Failed to start game')),
+                            );
+                          }
+                          return;
+                        }
+                        debugPrint("Game started successfully");
                       }
-                      // All players navigate to challenge creation
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChallengeCreateScreen(
-                            gameSessionId: widget.sessionId,
+
+                      // Navigate to challenge creation screen
+                      if (mounted) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChallengeCreateScreen(
+                              gameSessionId: widget.sessionId,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      }
                     }
                   : null,
               icon: const Icon(Icons.play_arrow),

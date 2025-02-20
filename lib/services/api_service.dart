@@ -189,23 +189,158 @@ class ApiService {
   }
 
   // Method to generate an image for a challenge
-  /// Generates an image for a given game session and challenge.
-  ///
-  /// This function sends a POST request to the server to generate an image
-  /// for the specified game session and challenge. It requires a valid
-  /// authentication token to be included in the request headers.
-  ///
-  /// If the request is successful (status code 200), the function returns
-  /// the URL of the generated image. If the request fails or the token is
-  /// null, the function returns null.
-  ///
-  /// Parameters:
-  /// - `gameSessionId`: The ID of the game session.
-  /// - `challengeId`: The ID of the challenge.
-  ///
-  /// Returns:
-  /// A `Future<String?>` that resolves to the URL of the generated image,
-  /// or null if the request fails or the token is null.
+  static Future<String?> generateImage(String gameSessionId, String challengeId) async {
+    final token = await getToken();
+    if (token == null) return null;
+
+    final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId/challenges/$challengeId/draw');
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['imageUrl'];
+    } else {
+      return null;
+    }
+  }
+
+  static Future<http.Response> getMyChallenges(String gameSessionId) async {
+    final token = await getToken();
+    if (token == null) return http.Response('Unauthorized', 401);
+
+    final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId/myChallenges');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    return response;
+  }
+
+  static Future<String?> generateImageWithPrompt(
+    String gameSessionId,
+    String challengeId,
+    String prompt,
+  ) async {
+    final token = await getToken();
+    if (token == null) return null;
+
+    final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId/challenges/$challengeId/draw');
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'prompt': prompt}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['imageUrl'];
+    }
+    return null;
+  }
+ static Future<List<String>> sendChallenges(String gameSessionId, Map<String, dynamic> challenge) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/game_sessions/$gameSessionId/challenges'), // Fixed URL path
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(challenge),
+      );
+
+      debugPrint('Challenge response: ${response.statusCode} - ${response.body}');
+      if (response.statusCode == 201) {
+        return ['success'];
+      } else {
+        debugPrint('Failed to send challenge: ${response.statusCode} - ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Error sending challenge: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> updateGameStatus(String sessionId, String status) async {
+    try {
+      final token = await getToken();
+      if (token == null) return false;
+
+      final url = Uri.parse('$baseUrl/game_sessions/$sessionId/status');
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'status': status}),
+      );
+
+      debugPrint("Update status response: ${response.statusCode}");
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint("Error updating game status: $e");
+      return false;
+    }
+  }
+
+  static Future<Map<String, dynamic>?> startGame(String sessionId) async {
+    try {
+      final token = await getToken();
+      if (token == null) return null;
+
+      final url = Uri.parse('$baseUrl/game_sessions/$sessionId/start');
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      debugPrint("Start game response: ${response.statusCode}");
+      debugPrint("Start game body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Error starting game: $e");
+      return null;
+    }
+  }
+
+  static Future<String?> getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
+  static Future<void> addTestPlayers(String sessionId) async {
+    final players = [
+      {'username': 'moi3', 'password': 'azerty'},
+      {'username': 'moi4', 'password': 'azerty'},
+      {'username': 'moi5', 'password': 'azerty'}
+    ];
+
+    // Get current session state
+    final sessionResponse = await getGameSessionDetails(sessionId);
+    if (sessionResponse.statusCode != 200) {
+      debugPrint('Failed to get session details');
+      return;
+    }
 
     final sessionData = jsonDecode(sessionResponse.body);
     var redTeam = List<dynamic>.from(sessionData['red_team'] ?? []);
@@ -222,9 +357,12 @@ class ApiService {
           debugPrint('Failed to login ${player['username']}');
           continue;
         }
+        debugPrint('Successfully logged in ${player['username']}');
         
+        // Determine team based on current sizes
         String teamColor = redTeam.length < 2 ? 'red' : 'blue';
-        final response = await http.post(
+        
+        final joinResponse = await http.post(
           Uri.parse('$baseUrl/game_sessions/$sessionId/join'),
           headers: {
             'Authorization': 'Bearer $token',
@@ -233,10 +371,12 @@ class ApiService {
           body: jsonEncode({'color': teamColor}),
         );
 
-        if (response.statusCode == 200) {
+        if (joinResponse.statusCode == 200) {
           debugPrint('Added ${player['username']} to $teamColor team');
           if (teamColor == 'red') redTeam.add(1);
           else blueTeam.add(1);
+        } else {
+          debugPrint('Failed to add ${player['username']}: ${joinResponse.body}');
         }
         
         await Future.delayed(const Duration(milliseconds: 200));
@@ -247,12 +387,12 @@ class ApiService {
 
     // Reconnect original user
     try {
+      debugPrint('Reconnecting original user (gwilym)...');
       final originalToken = await login('gwilym', 'azerty');
       if (originalToken != null) {
-        debugPrint('Successfully reconnected original user (gwilym)');
-        // Store the token in SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', originalToken);
+        debugPrint('Successfully reconnected original user (gwilym)');
       } else {
         debugPrint('Failed to reconnect original user');
       }
@@ -261,13 +401,8 @@ class ApiService {
     }
 
     // Verify final state
-    final finalSessionDetails = await getGameSessionDetails(sessionId);
-    debugPrint('Final session state: ${finalSessionDetails.body}');
-  }
-
-  static Future<String?> getToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    final finalState = await getGameSessionDetails(sessionId);
+    debugPrint('Final session state: ${finalState.body}');
   }
 }
 

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart'; // Import Provider
 import 'package:pictionairy/services/api_service.dart'; // Import ApiService
 import 'challenge_form_screen.dart';
 import 'dart:convert'; // For encoding/decoding JSON
+import 'package:pictionairy/screens/drawing_challenges_screen.dart';
 
 class ChallengeCreateScreen extends StatefulWidget {
   final String gameSessionId; // Add gameSessionId
@@ -24,6 +25,8 @@ class _ChallengeCreateScreenState extends State<ChallengeCreateScreen> {
   void initState() {
     super.initState();
     _loadChallenges(); // Load stored challenges on init
+    _addTestPlayersChallenges(); // Add this line
+    _addGwilymChallenges(); // Add this line
   }
 
   // Load challenges from SharedPreferences
@@ -55,6 +58,139 @@ Future<void> _saveChallenges() async {
   );
 }
 
+Future<void> _addTestPlayersChallenges() async {
+  final testPlayers = [
+    {'username': 'moi3', 'password': 'azerty'},
+    {'username': 'moi4', 'password': 'azerty'},
+    {'username': 'moi5', 'password': 'azerty'}
+  ];
+
+  // Predefined challenges for test players
+  final challenges = [
+    {
+      "first_word": "une",
+      "second_word": "poule",
+      "third_word": "sur",
+      "fourth_word": "un",
+      "fifth_word": "mur",
+      "forbidden_words": ["volaille", "brique", "poulet"]
+    },
+    {
+      "first_word": "un",
+      "second_word": "chat",
+      "third_word": "dans",
+      "fourth_word": "une",
+      "fifth_word": "boite",
+      "forbidden_words": ["carton", "felin", "miaou"]
+    },
+    {
+      "first_word": "un",
+      "second_word": "chien",
+      "third_word": "sur",
+      "fourth_word": "une",
+      "fifth_word": "plage",
+      "forbidden_words": ["sable", "mer", "aboyer"]
+    }
+  ];
+
+  for (var player in testPlayers) {
+    try {
+      // Login as test player
+      final token = await ApiService.login(player['username']!, player['password']!);
+      if (token == null) {
+        debugPrint('Failed to login ${player['username']}');
+        continue;
+      }
+      debugPrint('Successfully logged in as ${player['username']}');
+
+      // Send three challenges for each test player
+      for (var challenge in challenges) {
+        final response = await ApiService.sendChallenges(widget.gameSessionId, challenge);
+        debugPrint('Challenge sent for ${player['username']}: $response');
+      }
+
+      await Future.delayed(const Duration(milliseconds: 200));
+    } catch (e) {
+      debugPrint('Error processing challenges for ${player['username']}: $e');
+    }
+  }
+
+  // Reconnect original user
+  try {
+    debugPrint('Reconnecting original user (gwilym)...');
+    final originalToken = await ApiService.login('gwilym', 'azerty');
+    if (originalToken != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', originalToken);
+      debugPrint('Successfully reconnected original user (gwilym)');
+    } else {
+      debugPrint('Failed to reconnect original user');
+    }
+  } catch (e) {
+    debugPrint('Error reconnecting original user: $e');
+  }
+}
+
+Future<void> _addGwilymChallenges() async {
+  // Predefined challenges for gwilym
+  final gwilymChallenges = [
+    {
+      'firstToggle': 'un',
+      'firstWord': 'pingouin',
+      'preposition': 'sur',
+      'secondToggle': 'une',
+      'secondWord': 'banquise',
+      'forbiddenWords': ['glace', 'antarctique', 'froid'],
+      'id': '1'  // Add ID for tracking
+    },
+    {
+      'firstToggle': 'une',
+      'firstWord': 'licorne',
+      'preposition': 'dans',
+      'secondToggle': 'un',
+      'secondWord': 'arc-en-ciel',
+      'forbiddenWords': ['magique', 'corne', 'couleurs'],
+      'id': '2'  // Add ID for tracking
+    }
+  ];
+
+  try {
+    debugPrint('Adding challenges for gwilym...');
+    List<Map<String, dynamic>> localChallenges = [];
+    
+    // First, send challenges to the API
+    for (var challenge in gwilymChallenges) {
+      final apiChallenge = {
+        "first_word": challenge['firstToggle'],
+        "second_word": challenge['firstWord'],
+        "third_word": challenge['preposition'],
+        "fourth_word": challenge['secondToggle'],
+        "fifth_word": challenge['secondWord'],
+        "forbidden_words": challenge['forbiddenWords'],
+      };
+
+      final response = await ApiService.sendChallenges(widget.gameSessionId, apiChallenge);
+      debugPrint('Challenge sent for gwilym: $response');
+      
+      // Add to local list if API call was successful
+      if (response.isNotEmpty) {
+        localChallenges.add(challenge);
+      }
+    }
+
+    // After sending to API, update local state
+    if (mounted && localChallenges.isNotEmpty) {
+      setState(() {
+        challenges.addAll(localChallenges);
+      });
+      await _saveChallenges();
+      debugPrint('Added ${localChallenges.length} challenges for gwilym locally');
+    }
+
+  } catch (e) {
+    debugPrint('Error adding gwilym\'s challenges: $e');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -205,24 +341,75 @@ Future<void> _saveChallenges() async {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () async {
-                    for (var challenge in challenges) {
-                      Map<String, dynamic> formattedChallenge = {
-                        "first_word": challenge['firstToggle'],
-                        "second_word": challenge['firstWord'],
-                        "third_word": challenge['preposition'],
-                        "fourth_word": challenge['secondToggle'],
-                        "fifth_word": challenge['secondWord'],
-                        "forbidden_words": challenge['forbiddenWords'],
-                      };
+                    try {
+                      // First check if user already has challenges
+                      final existingChallenges = await ApiService.getMyChallenges(widget.gameSessionId);
+                      final challengesData = jsonDecode(existingChallenges.body);
+                      
+                      if (challengesData.isNotEmpty) {
+                        // User already has challenges, navigate directly
+                        if (mounted) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DrawingChallengesScreen(
+                                gameSessionId: widget.gameSessionId,
+                              ),
+                            ),
+                          );
+                        }
+                        return;
+                      }
 
-                      List<String> challengeIds = await ApiService.sendChallenges(widget.gameSessionId, formattedChallenge);
-                      if (challengeIds.isNotEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Challenges sent successfully! IDs: ${challengeIds.join(', ')}')),
+                      // If no existing challenges, proceed with sending new ones
+                      bool allChallengesSent = true;
+                      int successCount = 0;
+
+                      for (var challenge in challenges) {
+                        Map<String, dynamic> formattedChallenge = {
+                          "first_word": challenge['firstToggle'],
+                          "second_word": challenge['firstWord'],
+                          "third_word": challenge['preposition'],
+                          "fourth_word": challenge['secondToggle'],
+                          "fifth_word": challenge['secondWord'],
+                          "forbidden_words": challenge['forbiddenWords'],
+                        };
+
+                        final response = await ApiService.sendChallenges(
+                          widget.gameSessionId, 
+                          formattedChallenge
                         );
+                        
+                        if (response.isNotEmpty) {
+                          successCount++;
+                        } else {
+                          allChallengesSent = false;
+                          break;
+                        }
+                      }
+
+                      if (allChallengesSent && successCount > 0) {
+                        if (mounted) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DrawingChallengesScreen(
+                                gameSessionId: widget.gameSessionId,
+                              ),
+                            ),
+                          );
+                        }
                       } else {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Failed to send some challenges')),
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to send challenges')),
+                          SnackBar(content: Text('Error: $e')),
                         );
                       }
                     }
