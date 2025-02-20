@@ -71,26 +71,38 @@
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">Future&lt;String?&gt; createAndJoinGameSession() async {
   try {
+    &#47;&#47; Get connected user first
+    final connectedUser = await loadConnectedUser();
+    if (connectedUser == null) return null;
+
+    &#47;&#47; Parse the user JSON string
+    final userMap = jsonDecode(connectedUser);
+    final userId = userMap[&#39;id&#39;];
+
     &#47;&#47; Step 1: Create game session
     final sessionId = await ApiService.createGameSession();
     if (sessionId == null) {
       return null;
     }
 
-    &#47;&#47; Step 2: Randomly assign a team color (red or blue)
-    final List&lt;String&gt; teamColors = [&#39;red&#39;, &#39;blue&#39;];
-    final String randomTeam = teamColors[Random().nextInt(2)];
-
-    &#47;&#47; Step 3: Join the game session
-    final joinResponse = await ApiService.joinGameSession(sessionId, randomTeam);
-    if ( joinResponse.statusCode != 200) {
+    &#47;&#47; Step 2: Join as game starter
+    final joinResponse = await ApiService.joinGameSession(sessionId, &#39;red&#39;);
+    if (joinResponse.statusCode != 200) {
       return null;
     }
 
+    &#47;&#47; Create game session object with all players
+    final gameSession = GameSession(
+      id: sessionId,
+      gameStarterId: userId,
+      redTeamPlayers: [userMap[&#39;name&#39;]], &#47;&#47; Game starter is always in red team
+      blueTeamPlayers: [],
+    );
+
     &#47;&#47; Return game session details as JSON string
-    return joinResponse.body;
+    return jsonEncode(gameSession.toJson());
   } catch (e) {
-    print(&#39;Error creating or joining session: $e&#39;);
+    debugPrint(&#39;Error in createAndJoinGameSession: $e&#39;);
     return null;
   }
 }</code></pre>

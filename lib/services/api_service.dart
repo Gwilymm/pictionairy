@@ -189,53 +189,23 @@ class ApiService {
   }
 
   // Method to generate an image for a challenge
-  static Future<String?> generateImage(String gameSessionId, String challengeId) async {
-    final token = await getToken();
-    if (token == null) return null;
-
-    final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId/challenges/$challengeId/draw');
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body)['imageUrl'];
-    } else {
-      return null;
-    }
-  }
-
-  // Method to send challenges to the game session
-  /// Sends a challenge to the specified game session.
+  /// Generates an image for a given game session and challenge.
   ///
-  /// This function sends a POST request to the server with the provided
-  /// [gameSessionId] and [challenge] data. It includes an authorization token
-  /// in the request headers.
+  /// This function sends a POST request to the server to generate an image
+  /// for the specified game session and challenge. It requires a valid
+  /// authentication token to be included in the request headers.
   ///
-  /// If the token is not found, it logs a message and returns an empty list.
-  ///
-  /// The function logs the URL, challenge data, response status, and response
-  /// body for debugging purposes.
-  ///
-  /// If the request is successful (status code 200), it returns a list of
-  /// challenge IDs extracted from the response body. Otherwise, it logs an
-  /// error message and returns an empty list.
+  /// If the request is successful (status code 200), the function returns
+  /// the URL of the generated image. If the request fails or the token is
+  /// null, the function returns null.
   ///
   /// Parameters:
-  /// - [gameSessionId]: The ID of the game session to which the challenge is
-  ///   being sent.
-  /// - [challenge]: A map containing the challenge data to be sent.
+  /// - `gameSessionId`: The ID of the game session.
+  /// - `challengeId`: The ID of the challenge.
   ///
   /// Returns:
-  /// A [Future] that resolves to a list of challenge IDs if the request is
-  /// successful, or an empty list if the request fails or the token is not
-  /// found.
-      return;
-    }
+  /// A `Future<String?>` that resolves to the URL of the generated image,
+  /// or null if the request fails or the token is null.
 
     final sessionData = jsonDecode(sessionResponse.body);
     var redTeam = List<dynamic>.from(sessionData['red_team'] ?? []);

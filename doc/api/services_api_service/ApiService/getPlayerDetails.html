@@ -57,8 +57,8 @@
 
     <section class="multi-line-signature">
       
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/0.13.6/http/Response-class.html">Response</a></span>&gt;</span></span>
-<span class="name ">getPlayerDetails</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="getPlayerDetails-param-playerId"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">playerId</span></span></li>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/http/1.2.2/http/Response-class.html">Response</a></span>&gt;</span></span>
+<span class="name ">getPlayerDetails</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="getPlayerDetails-param-token"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">token</span></span></li>
 </ol>)
 
       
@@ -70,11 +70,12 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">static Future&lt;http.Response&gt; getPlayerDetails(String playerId) async {
-  final token = await _getToken();
+  <pre class="language-dart"><code class="language-dart">static Future&lt;http.Response&gt; getPlayerDetails(String token) async {
+  final token = await getToken();
+  debugPrint(&#39;Token: $token&#39;);
   if (token == null) return http.Response(&#39;Unauthorized&#39;, 401);
 
-  final url = Uri.parse(&#39;$baseUrl&#47;players&#47;$playerId&#39;);
+  final url = Uri.parse(&#39;$baseUrl&#47;me&#39;);
   final response = await http.get(
     url,
     headers: {

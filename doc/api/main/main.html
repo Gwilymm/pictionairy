@@ -70,7 +70,14 @@
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
   <pre class="language-dart"><code class="language-dart">void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize(); &#47;&#47; Add this line
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]).then((_) {
+    runApp(const MyApp());
+  });
 }</code></pre>
 </section>
 

@@ -69,13 +69,12 @@
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Map&lt;String, dynamic&gt; toJson() {
-  return {
-    &#39;session_id&#39;: sessionId,
-    &#39;red_team_players&#39;: redTeamPlayers,
-    &#39;blue_team_players&#39;: blueTeamPlayers,
-  };
-}</code></pre>
+  <pre class="language-dart"><code class="language-dart">Map&lt;String, dynamic&gt; toJson() =&gt; {
+  &#39;id&#39;: id,
+  &#39;gameStarterId&#39;: gameStarterId,
+  &#39;redTeamPlayers&#39;: redTeamPlayers,
+  &#39;blueTeamPlayers&#39;: blueTeamPlayers,
+};</code></pre>
 </section>
 
 
