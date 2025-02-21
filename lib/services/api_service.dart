@@ -7,6 +7,12 @@ class ApiService {
   static const String baseUrl = 'https://pictioniary.wevox.cloud/api';
 
   // Method to register a new player
+  /// Sends a POST request to create a new player.
+  ///
+  /// The [name] and [password] parameters are used to create the player.
+  /// The request is sent to the endpoint specified by [baseUrl]/players.
+  ///
+  /// Returns a [Future] that completes with the [http.Response] from the server.
   static Future<http.Response> createPlayer(
       String name, String password) async {
     final url = Uri.parse('$baseUrl/players');
@@ -19,6 +25,18 @@ class ApiService {
   }
 
   // Method to log in a player and store the JWT
+  /// Logs in a user with the provided [name] and [password].
+  ///
+  /// Sends a POST request to the login endpoint with the user's credentials.
+  /// If the login is successful and a token is received, the token is stored
+  /// in the shared preferences and returned.
+  ///
+  /// Returns the token as a [String] if login is successful, otherwise returns null.
+  ///
+  /// [name] - The username of the user.
+  /// [password] - The password of the user.
+  ///
+  /// Throws an [Exception] if there is an error during the HTTP request.
   static Future<String?> login(String name, String password) async {
     final url = Uri.parse('$baseUrl/login');
     final response = await http.post(
@@ -40,6 +58,18 @@ class ApiService {
   }
 
   // Method to get player details by ID (Protected by JWT)
+  /// Fetches the player details from the server.
+  ///
+  /// This method sends a GET request to the `/me` endpoint of the API
+  /// using the provided [token] for authorization. If the token is null,
+  /// it returns an unauthorized response.
+  ///
+  /// The method retrieves the token using the [getToken] function and
+  /// includes it in the request headers.
+  ///
+  /// Returns a [Future] that completes with the [http.Response] from the server.
+  ///
+  /// - Parameter [token]: The authorization token for the request.
   static Future<http.Response> getPlayerDetails(String token) async {
     final token = await getToken();
     debugPrint('Token: $token');
