@@ -10,7 +10,7 @@ class ChallengeFormController with ChangeNotifier {
   String? validateWord(String value) {
     if (value.isEmpty) {
       return 'Ce champ ne peut pas être vide';
-    } else if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) {
+    } else if (!RegExp(r'^[a-zA-Z\s\u00C0-\u017F]+$').hasMatch(value)) {
       return 'Seules les lettres et espaces sont autorisés';
     }
     return null;
