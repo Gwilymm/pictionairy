@@ -34,6 +34,8 @@ class _StartGameScreenState extends State<StartGameScreen> {
       _teamsStreamController; // Add this line
   BannerAd? _bannerAd; // Add this line
 
+  bool _isGameFull = false;
+
   bool get _isGameStarter {
     try {
       final connectedUserData = jsonDecode(widget.connectedUser);
@@ -67,6 +69,7 @@ class _StartGameScreenState extends State<StartGameScreen> {
         StreamController<List<List<String>>>(); // Add this line
     _startAutoRefresh(); // Add this line
     _loadTeams();
+    _startGameStatusCheck(); // Add this line
 
     // Add test players if current user is game starter
     if (_isGameStarter) {
@@ -109,6 +112,32 @@ class _StartGameScreenState extends State<StartGameScreen> {
     });
   }
 
+  void _startGameStatusCheck() {
+    Timer.periodic(const Duration(seconds: 2), (timer) async {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      try {
+        final response = await ApiService.getGameSessionDetails(widget.sessionId);
+        if (response.statusCode == 200) {
+          final gameData = jsonDecode(response.body);
+          final redTeam = List<dynamic>.from(gameData['red_team'] ?? []);
+          final blueTeam = List<dynamic>.from(gameData['blue_team'] ?? []);
+          
+          if (mounted) {
+            setState(() {
+              _isGameFull = redTeam.length >= 2 && blueTeam.length >= 2;
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint('Error checking game status: $e');
+      }
+    });
+  }
+
   Future<void> _loadTeams() async {
     try {
       final teams = await _controller.getTeams();
@@ -124,19 +153,19 @@ class _StartGameScreenState extends State<StartGameScreen> {
     return FutureBuilder<bool>(
       future: _controller.hasMinimumPlayers(),
       builder: (context, hasMinPlayersSnapshot) {
-        final bool hasMinPlayers = hasMinPlayersSnapshot.data ?? false;
+        final bool hasMinPlayers = _isGameFull; // Use _isGameFull instead
         final bool canStart = _isGameStarter && hasMinPlayers;
 
         final String buttonText = _isGameStarter
             ? hasMinPlayers
                 ? 'Commencer la partie'
-                : 'En attente de joueurs (min. 2)'
+                : 'En attente de joueurs (min. 2 par équipe)'
             : 'En attente du créateur';
 
         return Column(
           children: [
             ElevatedButton.icon(
-              onPressed: hasMinPlayers
+              onPressed: hasMinPlayers && _isGameStarter
                   ? () async {
                       debugPrint("Game starter initiating game start...");
                       if (_isGameStarter) {

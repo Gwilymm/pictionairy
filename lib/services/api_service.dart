@@ -224,30 +224,53 @@ class ApiService {
     return response;
   }
 
-  static Future<String?> generateImageWithPrompt(
-    String gameSessionId,
-    String challengeId,
-    String prompt,
-  ) async {
-    final token = await getToken();
-    if (token == null) return null;
+ static Future<String?> generateImageWithPrompt(
+  String gameSessionId,
+  String challengeId,
+  String prompt,
+) async {
+  final token = await getToken();
+  if (token == null) return null;
 
-    final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId/challenges/$challengeId/draw');
-    final response = await http.post(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'prompt': prompt}),
-    );
+  final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId/challenges/$challengeId/draw');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['imageUrl'];
+  debugPrint("Appel API : $url avec prompt : $prompt");
+
+  final response = await http.post(
+    url,
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({'prompt': prompt}),
+  );
+
+  debugPrint("Statut HTTP : ${response.statusCode}");
+  debugPrint("Réponse brute : ${response.body}");
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+
+    // Vérifier si l'API retourne `image_path` au lieu de `imageUrl`
+    if (data.containsKey('image_path')) {
+      debugPrint("Image générée : ${data['image_path']}");
+      return data['image_path'];
+    } else {
+      debugPrint("Erreur : L'API a retourné 200 mais sans image_path !");
+      return null;
     }
+  } else if (response.statusCode == 400) {
+    final errorData = jsonDecode(response.body);
+    debugPrint("Erreur API 400: ${errorData['message']}");
+
+    throw Exception(errorData['message']);
+  } else {
+    debugPrint("Erreur API : ${response.statusCode} - ${response.body}");
     return null;
   }
+}
+
+
  static Future<List<String>> sendChallenges(String gameSessionId, Map<String, dynamic> challenge) async {
     try {
       final token = await getToken();
@@ -259,7 +282,6 @@ class ApiService {
         },
         body: jsonEncode(challenge),
       );
-
       debugPrint('Challenge response: ${response.statusCode} - ${response.body}');
       if (response.statusCode == 201) {
         return ['success'];
@@ -403,6 +425,21 @@ class ApiService {
     // Verify final state
     final finalState = await getGameSessionDetails(sessionId);
     debugPrint('Final session state: ${finalState.body}');
+  }
+
+  static Future<http.Response> getGameSession(String gameSessionId) async {
+    final token = await getToken();
+    if (token == null) return http.Response('Unauthorized', 401);
+
+    final url = Uri.parse('$baseUrl/game_sessions/$gameSessionId');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    return response;
   }
 }
 

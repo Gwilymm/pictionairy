@@ -8,6 +8,7 @@ import 'package:pictionairy/services/api_service.dart'; // Import ApiService
 import 'challenge_form_screen.dart';
 import 'dart:convert'; // For encoding/decoding JSON
 import 'package:pictionairy/screens/drawing_challenges_screen.dart';
+import 'dart:async';
 
 class ChallengeCreateScreen extends StatefulWidget {
   final String gameSessionId; // Add gameSessionId
@@ -20,31 +21,81 @@ class ChallengeCreateScreen extends StatefulWidget {
 
 class _ChallengeCreateScreenState extends State<ChallengeCreateScreen> {
   List<Map<String, dynamic>> challenges = [];
+  Timer? _timer;  // Add this at the class level
+  String? _currentPhase;  // Add this field to track the game phase
 
   @override
   void initState() {
     super.initState();
-    _loadChallenges(); // Load stored challenges on init
+    // Add periodic check for game phase
+    _checkAndNavigate();
+    _checkGameStatusPeriodically();
+    Timer.periodic(const Duration(seconds: 3), (_) => _checkAndNavigate());
     _addTestPlayersChallenges(); // Add this line
     _addGwilymChallenges(); // Add this line
   }
+  void _checkGameStatusPeriodically() {
+  Timer.periodic(const Duration(seconds: 3), (timer) async {
+    if (!mounted) {
+      timer.cancel();
+      return;
+    }
 
-  // Load challenges from SharedPreferences
-  // Load challenges from SharedPreferences (new structure)
-Future<void> _loadChallenges() async {
-  final prefs = await SharedPreferences.getInstance();
-  final String? storedChallenges = prefs.getString('challenges');
-  if (storedChallenges != null) {
-    setState(() {
-      challenges = List<Map<String, dynamic>>.from(
-        jsonDecode(storedChallenges).map((e) => {
-          'id': e['id'],
-          'details': e['details'],
-        }),
-      );
-    });
-  }
+    // Récupérer l'état actuel du jeu
+    String? phase = await _getGamePhase();
+
+    // Si le jeu passe en mode DRAWING, on redirige automatiquement
+    if (phase == 'drawing') {
+      timer.cancel(); // Arrêter la vérification
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DrawingChallengesScreen(
+              gameSessionId: widget.gameSessionId,
+            ),
+          ),
+        );
+      }
+    }
+  });
 }
+
+
+  Future<String?> _getGamePhase() async {
+    try {
+      final response = await ApiService.getGameSession(widget.gameSessionId);
+      if (response.statusCode == 200) {
+        final gameData = jsonDecode(response.body);
+        return gameData['status'] as String?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error checking game phase: $e');
+      return null;
+    }
+  }
+
+  Future<void> _checkAndNavigate() async {
+    String? phase = await _getGamePhase();
+    if (phase == 'DRAWING' && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DrawingChallengesScreen(
+            gameSessionId: widget.gameSessionId,
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    // Cancel the timer when disposing
+    _timer?.cancel();
+    super.dispose();
+  }
 
 // Save challenges to SharedPreferences (new structure)
 Future<void> _saveChallenges() async {
@@ -191,6 +242,115 @@ Future<void> _addGwilymChallenges() async {
     debugPrint('Error adding gwilym\'s challenges: $e');
   }
 }
+
+  Future<bool> _isGameInDrawingMode() async {
+    try {
+      final response = await ApiService.getGameSession(widget.gameSessionId);
+      final gameData = jsonDecode(response.body);
+      return gameData['status'] == 'DRAWING';
+    } catch (e) {
+      debugPrint('Error checking game status: $e');
+      return false;
+    }
+  }
+
+  Future<int> _getSubmittedChallengesCount() async {
+    try {
+      final existingChallenges = await ApiService.getMyChallenges(widget.gameSessionId);
+      if (existingChallenges.statusCode == 200) {
+        final challengesData = jsonDecode(existingChallenges.body) as List;
+        return challengesData.length;
+      }
+      return 0;
+    } catch (e) {
+      debugPrint('Error getting challenges count: $e');
+      return 0;
+    }
+  }
+
+ Future<void> _submitChallenges() async {
+  try {
+    // Vérifier si l'utilisateur a bien 3 challenges
+    if (challenges.length != 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vous devez soumettre exactement 3 challenges')),
+      );
+      return;
+    }
+
+    // Vérifier combien de challenges ont déjà été soumis
+    final existingCount = await _getSubmittedChallengesCount();
+    final remainingNeeded = 3 - existingCount;
+
+    if (remainingNeeded <= 0) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vous avez déjà soumis tous vos challenges')),
+        );
+      }
+      return;
+    }
+
+    debugPrint('Besoin de soumettre $remainingNeeded challenges');
+
+    // Envoyer uniquement le nombre restant
+    int successCount = 0;
+    for (var i = 0; i < remainingNeeded; i++) {
+      if (i >= challenges.length) break;
+
+      final challenge = challenges[i];
+      Map<String, dynamic> formattedChallenge = {
+        "first_word": challenge['firstToggle'],
+        "second_word": challenge['firstWord'],
+        "third_word": challenge['preposition'],
+        "fourth_word": challenge['secondToggle'],
+        "fifth_word": challenge['secondWord'],
+        "forbidden_words": challenge['forbiddenWords'],
+      };
+
+      final response = await ApiService.sendChallenges(
+        widget.gameSessionId, 
+        formattedChallenge
+      );
+
+      if (response.isNotEmpty) {
+        successCount++;
+      }
+    }
+
+    // Vérifier si tous les joueurs ont soumis leurs challenges
+    await Future.delayed(const Duration(seconds: 2));
+    bool isDrawing = await _isGameInDrawingMode();
+
+    if (mounted) {
+      if (isDrawing) {
+        // Mise à jour du statut de la game
+        await ApiService.updateGameStatus(widget.gameSessionId, 'DRAWING');
+
+        // Rediriger vers `DrawingChallengesScreen`
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DrawingChallengesScreen(
+              gameSessionId: widget.gameSessionId,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('En attente que les autres joueurs soumettent leurs challenges...')),
+        );
+      }
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e')),
+      );
+    }
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -340,80 +500,7 @@ Future<void> _addGwilymChallenges() async {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      // First check if user already has challenges
-                      final existingChallenges = await ApiService.getMyChallenges(widget.gameSessionId);
-                      final challengesData = jsonDecode(existingChallenges.body);
-                      
-                      if (challengesData.isNotEmpty) {
-                        // User already has challenges, navigate directly
-                        if (mounted) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DrawingChallengesScreen(
-                                gameSessionId: widget.gameSessionId,
-                              ),
-                            ),
-                          );
-                        }
-                        return;
-                      }
-
-                      // If no existing challenges, proceed with sending new ones
-                      bool allChallengesSent = true;
-                      int successCount = 0;
-
-                      for (var challenge in challenges) {
-                        Map<String, dynamic> formattedChallenge = {
-                          "first_word": challenge['firstToggle'],
-                          "second_word": challenge['firstWord'],
-                          "third_word": challenge['preposition'],
-                          "fourth_word": challenge['secondToggle'],
-                          "fifth_word": challenge['secondWord'],
-                          "forbidden_words": challenge['forbiddenWords'],
-                        };
-
-                        final response = await ApiService.sendChallenges(
-                          widget.gameSessionId, 
-                          formattedChallenge
-                        );
-                        
-                        if (response.isNotEmpty) {
-                          successCount++;
-                        } else {
-                          allChallengesSent = false;
-                          break;
-                        }
-                      }
-
-                      if (allChallengesSent && successCount > 0) {
-                        if (mounted) {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DrawingChallengesScreen(
-                                gameSessionId: widget.gameSessionId,
-                              ),
-                            ),
-                          );
-                        }
-                      } else {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Failed to send some challenges')),
-                          );
-                        }
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
-                      }
-                    }
-                  },
+                  onPressed: _submitChallenges,
                   style: AppTheme.elevatedButtonStyle,
                   child: const Text('Envoyer les challenges', style: AppTheme.buttonTextStyle),
                 ),
